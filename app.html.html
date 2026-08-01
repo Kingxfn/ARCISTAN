@@ -1,0 +1,3142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Arcistan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0D0A0E;
+    --bg-2: #16121A;
+    --paper: rgba(255,247,235,0.045);
+    --paper2: rgba(255,247,235,0.075);
+    --ink: #F4EEE4;
+    --green: #C9A227;
+    --green-soft: #9C7B2E;
+    --gold: #E0A73E;
+    --teal: #2FB894;
+    --violet: #B9773F;
+    --line: rgba(255,247,235,0.09);
+    --muted: #978F80;
+    --red: #E0665A;
+    --glass-blur: 18px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  /* Ambient animated mesh background — the signature atmosphere */
+  body::before {
+    content: "";
+    position: fixed; inset: -20%;
+    z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(38% 32% at 18% 12%, rgba(201,162,39,0.16), transparent 65%),
+      radial-gradient(42% 38% at 88% 8%, rgba(185,119,63,0.14), transparent 60%),
+      radial-gradient(46% 40% at 78% 88%, rgba(47,184,148,0.10), transparent 65%),
+      radial-gradient(30% 30% at 6% 82%, rgba(201,162,39,0.08), transparent 60%);
+    filter: blur(10px);
+    animation: meshDrift 26s ease-in-out infinite alternate;
+  }
+  @keyframes meshDrift {
+    0%   { transform: translate3d(0,0,0) scale(1); }
+    50%  { transform: translate3d(-2%,1.5%,0) scale(1.05); }
+    100% { transform: translate3d(2%,-1%,0) scale(1.02); }
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 32px 20px 90px; position: relative; z-index: 1; }
+
+  /* Header */
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+
+  /* Top tabs */
+  .top-tabs {
+    position: sticky; top: 0; z-index: 80;
+    display: flex; gap: 2px; margin: 0 -20px 22px; padding: 12px 20px 0;
+    background: linear-gradient(var(--bg) 72%, transparent);
+    backdrop-filter: blur(6px);
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .top-tabs::-webkit-scrollbar { display: none; }
+  .top-tab {
+    flex: 0 0 auto; white-space: nowrap;
+    background: none; border: none; cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 500;
+    color: var(--muted); padding: 10px 14px 12px; position: relative;
+    transition: color 0.2s ease;
+  }
+  .top-tab::after {
+    content: ""; position: absolute; left: 10px; right: 10px; bottom: 0; height: 2px;
+    background: transparent; border-radius: 2px; transition: all 0.25s cubic-bezier(.2,.8,.2,1);
+  }
+  .top-tab:hover { color: var(--ink); }
+  .top-tab.active { color: var(--ink); }
+  .top-tab.active::after {
+    background: linear-gradient(90deg, var(--green), var(--teal));
+    box-shadow: 0 0 12px rgba(201,162,39,0.6);
+  }
+  .tab-panel:not(.active-tab) { display: none !important; }
+  .tab-panel.active-tab { animation: fadeUp 0.35s cubic-bezier(.2,.8,.2,1); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-mark {
+    width: 36px; height: 36px; border-radius: 11px;
+    background: conic-gradient(from 180deg, var(--green), var(--teal), var(--violet), var(--green));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 14px; color: #241A02;
+    box-shadow: 0 6px 18px rgba(201,162,39,0.28);
+    position: relative;
+  }
+  .brand-mark::after {
+    content: ""; position: absolute; inset: 2px; border-radius: 9px;
+    background: var(--bg-2); opacity: 0.12;
+  }
+  .brand-name { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 21px; letter-spacing: -0.01em; }
+  .lang-toggle { font-size: 12px; color: var(--muted); border: 1px solid var(--line); padding: 6px 12px; border-radius: 20px; background: var(--paper); backdrop-filter: blur(var(--glass-blur)); cursor: pointer; transition: all 0.2s ease; }
+  .lang-toggle:hover { border-color: var(--teal); color: var(--ink); }
+  /* Devaluation alert */
+  .alert-banner {
+    display: none;
+    align-items: center; justify-content: space-between; gap: 10px;
+    background: rgba(255,92,114,0.09); border: 1px solid rgba(255,92,114,0.28); color: var(--red);
+    backdrop-filter: blur(var(--glass-blur));
+    border-radius: 14px; padding: 12px 14px; margin-bottom: 20px; font-size: 13px;
+  }
+  .alert-banner button {
+    background: var(--red); color: #fff; border: none; border-radius: 8px;
+    padding: 6px 10px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap;
+  }
+  .alert-dismiss {
+    background: none !important; color: var(--red) !important; font-size: 16px !important;
+    padding: 0 4px !important; line-height: 1;
+  }
+
+  /* Hero seal — the signature 3D element */
+  .hero { text-align: center; margin-bottom: 26px; perspective: 900px; }
+  .eyebrow { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); font-weight: 500; margin-bottom: 20px; }
+  .seal {
+    width: 226px; height: 226px; border-radius: 50%;
+    margin: 0 auto 22px;
+    background: radial-gradient(circle at 32% 28%, #F0CE7A, var(--green-soft) 55%, #4A3308 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative;
+    box-shadow:
+      0 30px 70px -15px rgba(201,162,39,0.45),
+      0 0 0 1px rgba(255,255,255,0.06) inset,
+      0 -20px 40px rgba(0,0,0,0.25) inset;
+    transform: rotateX(4deg);
+    transition: transform 0.4s cubic-bezier(.2,.8,.2,1);
+    animation: sealFloat 6s ease-in-out infinite;
+  }
+  .seal:hover { transform: rotateX(0deg) rotateY(4deg) scale(1.015); }
+  @keyframes sealFloat { 0%,100% { transform: translateY(0) rotateX(4deg); } 50% { transform: translateY(-6px) rotateX(2deg); } }
+  .seal::before {
+    content: "";
+    position: absolute; inset: -6px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--green), var(--teal), var(--violet), var(--gold), var(--green));
+    z-index: -1;
+    opacity: 0.55;
+    animation: ringSpin 10s linear infinite;
+    filter: blur(2px);
+  }
+  .seal::after {
+    content: "";
+    position: absolute; inset: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.22);
+  }
+  @keyframes ringSpin { to { transform: rotate(360deg); } }
+  .seal .amount { font-family: 'IBM Plex Mono', monospace; font-size: 36px; font-weight: 500; color: #FBF6EC; text-shadow: 0 2px 12px rgba(0,0,0,0.25); }
+  .seal .amount span { font-size: 16px; color: #EFFFF8; vertical-align: super; opacity: 0.85; }
+  .seal .label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(251,246,236,0.75); margin-top: 7px; }
+  .sub-value { font-size: 13px; color: var(--muted); }
+  .sub-value b { color: var(--ink); font-family: 'IBM Plex Mono', monospace; font-weight: 500; }
+
+  /* Rate ticker */
+  .rate-ticker {
+    display: inline-flex; align-items: center; gap: 8px; margin: 14px auto 0;
+    background: var(--paper); border: 1px solid var(--line); backdrop-filter: blur(var(--glass-blur)); border-radius: 20px;
+    padding: 8px 16px; font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  }
+  .rate-ticker .rt-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 8px var(--teal); animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .rt-delta { font-size: 11px; }
+  .rt-up { color: var(--red); }
+  .rt-down { color: var(--teal); }
+
+  /* Card — glassmorphic surface */
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-radius: 18px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 12px 32px -8px rgba(0,0,0,0.35);
+    transition: transform 0.25s cubic-bezier(.2,.8,.2,1), box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.16); box-shadow: 0 18px 40px -8px rgba(0,0,0,0.42); }
+  .card h2 { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 18px; margin-bottom: 4px; letter-spacing: -0.01em; }
+  .card .hint { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+
+  /* Trust card */
+  .trust-card { background: linear-gradient(160deg, rgba(201,162,39,0.09), rgba(47,184,148,0.05)); border: 1px solid rgba(201,162,39,0.22); }
+  .trust-points { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+  .trust-point { display: flex; gap: 10px; align-items: flex-start; }
+  .trust-icon {
+    width: 26px; height: 26px; border-radius: 9px; background: linear-gradient(135deg, var(--green), var(--teal));
+    color: #241A02; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; box-shadow: 0 4px 12px rgba(201,162,39,0.3);
+  }
+  .trust-point p { font-size: 13px; color: var(--ink); }
+  .trust-point p b { color: var(--green); }
+
+  /* Convert form */
+  .convert-row { display: flex; gap: 10px; align-items: stretch; }
+  .field { flex: 1; }
+  .field label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 6px; }
+  .field input {
+    width: 100%; border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 15px;
+    background: rgba(255,255,255,0.03); color: var(--ink);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .field input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(47,184,148,0.16); }
+  .arrow { display: flex; align-items: flex-end; padding-bottom: 12px; color: var(--gold); font-size: 18px; }
+  .rate-note { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .fee-note {
+    display: flex; justify-content: space-between; font-size: 12px; color: var(--muted);
+    margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line);
+  }
+  .fee-note b { color: var(--ink); }
+  .fee-badge { color: var(--teal); font-weight: 500; }
+  button.primary {
+    width: 100%; margin-top: 18px;
+    background: linear-gradient(135deg, var(--green), var(--teal)); color: #241A02; border: none;
+    padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 600;
+    font-family: 'Space Grotesk', sans-serif; cursor: pointer;
+    box-shadow: 0 10px 26px -6px rgba(201,162,39,0.4);
+    transition: transform 0.2s cubic-bezier(.2,.8,.2,1), box-shadow 0.2s ease, filter 0.2s ease;
+  }
+  button.primary:hover { transform: translateY(-1px); box-shadow: 0 14px 32px -6px rgba(201,162,39,0.5); filter: brightness(1.05); }
+  button.primary:active { transform: translateY(0); }
+  button.primary:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  button.primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* Chart */
+  .chart-wrap { position: relative; }
+  svg { width: 100%; height: auto; display: block; }
+  .legend { display: flex; gap: 18px; margin-top: 14px; font-size: 12px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+  footer { text-align: center; font-size: 12px; color: var(--muted); margin-top: 30px; }
+
+  /* History */
+  .history-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; background: rgba(255,255,255,0.03); border-radius: 12px;
+    border: 1px solid var(--line);
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .history-row:hover { border-color: rgba(47,184,148,0.3); background: rgba(47,184,148,0.04); }
+  .history-row .h-left { display: flex; flex-direction: column; gap: 2px; }
+  .history-row .h-amounts { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 500; }
+  .history-row .h-date { font-size: 11px; color: var(--muted); }
+  .history-row .h-usdc { color: var(--teal); font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 14px; }
+
+  /* Deposit / Withdraw */
+  .dw-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+  .dw-tab {
+    flex: 1; padding: 11px; border-radius: 10px; border: 1px solid var(--line);
+    background: rgba(255,255,255,0.03); color: var(--muted); font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;
+  }
+  .dw-tab.active { background: linear-gradient(135deg, var(--green), var(--teal)); color: #241A02; border-color: transparent; box-shadow: 0 8px 20px -6px rgba(201,162,39,0.4); }
+  .dw-methods { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+  .method-btn {
+    flex: 1; min-width: 100px; padding: 12px 10px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--paper); color: var(--ink); font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;
+  }
+  .method-btn.active { border-color: var(--teal); box-shadow: 0 0 0 1.5px var(--teal) inset, 0 0 16px rgba(47,184,148,0.25); color: var(--teal); }
+  .dw-badge {
+    display: inline-block; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--gold); border: 1px solid rgba(255,194,75,0.4); border-radius: 20px;
+    padding: 3px 9px; margin-bottom: 14px;
+  }
+
+  /* Bill payments */
+  .field select {
+    width: 100%; border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; font-family: 'Inter', sans-serif; font-size: 14px;
+    background: rgba(255,255,255,0.03); color: var(--ink);
+  }
+  .field select:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(47,184,148,0.16); }
+  button.secondary {
+    width: 100%; margin-top: 4px;
+    background: rgba(47,184,148,0.06); color: var(--teal); border: 1.5px solid var(--teal);
+    padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 600;
+    font-family: 'Space Grotesk', sans-serif; cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  button.secondary:hover { background: var(--teal); color: #241A02; box-shadow: 0 10px 26px -6px rgba(47,184,148,0.4); }
+
+  /* Toggle switch (auto-save) */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .toggle-row .tr-label { font-size: 14px; font-weight: 500; }
+  .toggle-row .tr-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .switch { position: relative; width: 44px; height: 26px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; cursor: pointer; inset: 0; background: var(--line);
+    border-radius: 26px; transition: 0.25s;
+  }
+  .slider::before {
+    content: ""; position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px;
+    background: #fff; border-radius: 50%; transition: 0.25s; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  .switch input:checked + .slider { background: linear-gradient(135deg, var(--green), var(--teal)); }
+  .switch input:checked + .slider::before { transform: translateX(18px); }
+  .auto-save-detail { display: none; }
+  .auto-save-detail.show { display: block; animation: fadeUp 0.3s ease; }
+  .auto-save-row { display: flex; gap: 10px; margin-bottom: 14px; }
+  .next-run {
+    background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 14px; font-size: 13px; color: var(--muted); margin-top: 4px;
+  }
+  .next-run b { color: var(--green); }
+
+  /* ArcPoints table row */
+  .ap-row td { padding: 8px 4px; border-bottom: 1px dotted var(--line); }
+  .ap-row .ap-pts { text-align:right; color: var(--gold); font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+
+  /* KYC modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(3,5,10,0.72);
+    backdrop-filter: blur(6px);
+    z-index: 200; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: 18px; padding: 28px; max-width: 420px; width: 100%;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.6);
+    animation: slideUp 0.25s cubic-bezier(.2,.8,.2,1);
+  }
+  .modal-box h2 { font-family: 'Space Grotesk', sans-serif; font-size: 20px; margin-bottom: 6px; font-weight: 600; }
+  .modal-box .hint { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .modal-box .field { margin-bottom: 14px; }
+  .modal-box .field input {
+    width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px;
+    font-family: 'Inter', sans-serif; font-size: 14px; background: rgba(255,255,255,0.04); color: var(--ink);
+  }
+  .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+  .modal-actions button { flex: 1; }
+  .modal-skip {
+    background: none; border: 1px solid var(--line); color: var(--muted);
+    padding: 14px; border-radius: 12px; font-size: 14px; cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .kyc-badge {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--teal);
+    background: rgba(47,184,148,0.12); border-radius: 20px; padding: 4px 10px; margin-top: 10px;
+  }
+
+  /* PIN lock */
+  .pin-overlay {
+    display: none; position: fixed; inset: 0; background: #03050A;
+    z-index: 300; align-items: center; justify-content: center; flex-direction: column;
+  }
+  .pin-overlay::before {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(50% 40% at 50% 30%, rgba(201,162,39,0.10), transparent 70%);
+  }
+  .pin-overlay.show { display: flex; }
+  .pin-overlay .brand-mark { margin-bottom: 18px; width: 46px; height: 46px; font-size: 20px; }
+  .pin-overlay h2 { font-family: 'Space Grotesk', sans-serif; color: #FBFAF6; font-size: 18px; margin-bottom: 6px; font-weight: 600; }
+  .pin-overlay p { color: rgba(251,250,246,0.7); font-size: 13px; margin-bottom: 22px; }
+  .pin-dots { display: flex; gap: 14px; margin-bottom: 26px; }
+  .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(251,250,246,0.5); transition: all 0.2s ease; }
+  .pin-dot.filled { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 12px rgba(255,194,75,0.6); }
+  .pin-keypad { display: grid; grid-template-columns: repeat(3, 64px); gap: 12px; }
+  .pin-key {
+    width: 64px; height: 64px; border-radius: 50%; border: 1px solid rgba(251,250,246,0.3);
+    background: rgba(251,250,246,0.06); color: #FBFAF6; font-size: 20px; font-family: 'IBM Plex Mono', monospace;
+    cursor: pointer; transition: all 0.15s ease;
+  }
+  .pin-key:hover { background: rgba(251,250,246,0.14); border-color: var(--teal); }
+  .pin-key:active { background: rgba(251,250,246,0.22); transform: scale(0.95); }
+  .pin-error { color: #FFB199; font-size: 12px; margin-top: 14px; height: 14px; }
+  .pin-skip { margin-top: 22px; background: none; border: none; color: rgba(251,250,246,0.6); font-size: 12px; text-decoration: underline; cursor: pointer; }
+
+  /* WhatsApp float button */
+  .whatsapp-float {
+    position: fixed; bottom: 24px; right: 20px; z-index: 90;
+    width: 56px; height: 56px; border-radius: 50%; background: #25D366;
+    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 26px;
+    box-shadow: 0 10px 28px rgba(37,211,102,0.45); text-decoration: none; border: none; cursor: pointer;
+    transition: transform 0.2s cubic-bezier(.2,.8,.2,1);
+  }
+  .whatsapp-float:hover { transform: translateY(-3px) scale(1.05); }
+
+  /* Network status chip */
+  .network-chip {
+    display: inline-flex; align-items: center; gap: 7px; margin-top: 10px;
+    font-size: 11px; color: var(--muted); letter-spacing: 0.02em;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .network-chip-sep { opacity: 0.5; }
+  .network-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px rgba(201,162,39,0.18); }
+
+  /* Wallet bar - always visible, high contrast */
+  .wallet-bar {
+    position: sticky; top: 0; z-index: 90;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: linear-gradient(120deg, #9C7B2E, #C9A227 55%, #2FB894);
+    border-radius: 16px; padding: 12px 16px; margin-bottom: 16px;
+    box-shadow: 0 14px 34px -8px rgba(201,162,39,0.4);
+  }
+  .wb-status { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #241A02; font-family: 'IBM Plex Mono', monospace; font-weight: 500; }
+  .wb-dot { width: 7px; height: 7px; border-radius: 50%; background: #FF5C72; }
+  .wb-dot.connected { background: #241A02; box-shadow: 0 0 0 3px rgba(36,26,2,0.18); }
+  .wb-actions { display: flex; align-items: center; gap: 8px; }
+  .wb-faucet {
+    background: rgba(36,26,2,0.14); color: #241A02; border: 1px solid rgba(36,26,2,0.25);
+    border-radius: 20px; padding: 8px 12px; font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .wb-faucet:hover { background: rgba(36,26,2,0.24); }
+  .wb-connect {
+    background: #241A02; color: #FBF3E4; border: none;
+    border-radius: 20px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+  .wb-connect:hover { transform: translateY(-1px); }
+
+  /* Wallet selection modal */
+  .wallet-modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(3,5,10,0.65);
+    backdrop-filter: blur(6px);
+    z-index: 200; align-items: flex-end; justify-content: center;
+  }
+  .wallet-modal-overlay.show { display: flex; }
+  .wallet-modal {
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 480px; padding: 20px; max-height: 80vh; overflow-y: auto;
+    animation: slideUp 0.25s cubic-bezier(.2,.8,.2,1);
+  }
+  @media (min-width: 560px) {
+    .wallet-modal-overlay { align-items: center; }
+    .wallet-modal { border-radius: 20px; }
+  }
+  @keyframes slideUp { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .wm-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .wm-head h3 { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 18px; }
+  .wm-close { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; }
+  .wm-list { display: flex; flex-direction: column; gap: 8px; }
+  .wm-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+    border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,0.03);
+    cursor: pointer; font-size: 14px; font-weight: 500; color: var(--ink);
+    transition: all 0.2s ease;
+  }
+  .wm-item:hover { border-color: var(--teal); background: rgba(47,184,148,0.05); transform: translateX(2px); }
+  .wm-icon { width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0; display:flex; align-items:center; justify-content:center; font-size:16px; background: var(--paper2); }
+  .wm-tag { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .wm-tag.detected { color: var(--teal); }
+  .wm-note { font-size: 11px; color: var(--muted); margin-top: 14px; line-height: 1.5; }
+
+  /* How it works */
+  .hiw-steps { display: flex; flex-direction: column; gap: 14px; }
+  .hiw-step { display: flex; gap: 12px; align-items: flex-start; }
+  .hiw-num {
+    width: 26px; height: 26px; border-radius: 9px; background: linear-gradient(135deg, var(--gold), #F5DA9A); color: #241A02;
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px;
+  }
+  .hiw-step p { font-size: 13px; color: var(--ink); }
+  .hiw-step p b { color: var(--green); }
+
+  /* Round-up */
+  .roundup-summary {
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; margin-top: 14px; font-size: 13px;
+  }
+  .roundup-summary b { font-family: 'IBM Plex Mono', monospace; color: var(--green); }
+
+  /* Family group savings */
+  .group-member-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .group-member-row:last-child { border-bottom: none; }
+  .group-member-row .gm-amt { font-family: 'IBM Plex Mono', monospace; color: var(--teal); font-weight: 500; }
+  .group-add-row { display: flex; gap: 8px; margin-top: 14px; }
+  .group-add-row input {
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 13px;
+    font-family: 'Inter', sans-serif; background: rgba(255,255,255,0.03); color: var(--ink);
+  }
+  .group-add-row input:first-child { flex: 1.4; }
+  .group-add-row input:last-child { flex: 1; font-family: 'IBM Plex Mono', monospace; }
+
+  /* Badges */
+  .badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 12px; }
+  .badge-item {
+    display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
+    padding: 14px 8px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--line);
+    opacity: 0.35; filter: grayscale(1); transition: all 0.25s ease;
+  }
+  .badge-item.unlocked {
+    opacity: 1; filter: none; background: linear-gradient(160deg, rgba(201,162,39,0.12), rgba(47,184,148,0.06));
+    border-color: rgba(201,162,39,0.32); box-shadow: 0 8px 20px -6px rgba(201,162,39,0.3);
+  }
+  .badge-item .b-icon { font-size: 26px; }
+  .badge-item .b-label { font-size: 11px; color: var(--muted); }
+
+  /* Rate alert */
+  .rate-alert-row { display: flex; gap: 8px; align-items: flex-end; margin-top: 14px; }
+  .rate-alert-row .field { flex: 1; }
+  .rate-alert-active {
+    display: none; align-items: center; justify-content: space-between;
+    background: rgba(201,162,39,0.07); border: 1px solid rgba(201,162,39,0.25); border-radius: 10px;
+    padding: 10px 14px; margin-top: 12px; font-size: 13px;
+  }
+  .rate-alert-active.show { display: flex; }
+  .rate-alert-active button { background: none; border: none; color: var(--red); font-size: 12px; cursor: pointer; }
+
+  /* QR modal */
+  .qr-box { text-align: center; }
+  .qr-box img { border-radius: 12px; border: 1px solid var(--line); margin-bottom: 14px; }
+
+  /* Network & Contract card */
+  .network-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 0; border-bottom: 1px dashed var(--line); font-size: 13px; color: var(--muted);
+  }
+  .network-row:last-of-type { border-bottom: none; }
+  .network-row b { color: var(--ink); font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+  .mono-addr { letter-spacing: 0.02em; }
+  .net-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; box-shadow: 0 0 6px var(--green); }
+  .status-ok { color: var(--green) !important; }
+  .explorer-link {
+    display: inline-block; margin-top: 14px; font-size: 13px; color: var(--teal);
+    text-decoration: none; border-bottom: 1px solid rgba(47,184,148,0.4);
+  }
+  .explorer-link:hover { border-bottom-color: var(--teal); }
+
+  /* Legal / risk disclosure links */
+  .legal-links { display: flex; gap: 18px; margin-top: 16px; flex-wrap: wrap; }
+  .legal-links a { font-size: 12px; color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+  .legal-links a:hover { color: var(--teal); }
+
+  /* Reminder nudge */
+  .nudge-banner {
+    display: none; align-items: center; justify-content: space-between; gap: 10px;
+    background: rgba(255,194,75,0.09); border: 1px solid rgba(255,194,75,0.3); color: var(--gold);
+    backdrop-filter: blur(var(--glass-blur));
+    border-radius: 14px; padding: 12px 14px; margin-bottom: 20px; font-size: 13px;
+  }
+  .nudge-banner.show { display: flex; }
+
+  /* ---------------- Merged marketing content (Home tab) ---------------- */
+  .mkt-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); font-weight: 600; border: 1px solid var(--line); background: var(--paper); padding: 6px 13px; border-radius: 20px; margin-bottom: 16px; }
+  .mkt-eyebrow .rt-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 8px var(--teal); animation: pulse 1.6s infinite; }
+  .mkt-hero-copy { text-align: center; margin-bottom: 24px; }
+  .mkt-hero-copy h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; line-height: 1.15; margin: 0 auto 12px; }
+  .mkt-hero-copy .mkt-grad { background: linear-gradient(120deg, var(--green), var(--teal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .mkt-hero-copy p.mkt-sub { font-size: 14px; color: var(--muted); margin: 0 auto; }
+  .mkt-stats-bar { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; margin: 18px 0 4px; }
+  .mkt-stat-cell { background: var(--paper); padding: 16px 10px; text-align: center; }
+  .mkt-stat-cell .num { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 500; color: var(--green); }
+  .mkt-stat-cell .lbl { font-size: 10px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .mkt-section-head { text-align: center; margin: 8px 0 18px; }
+  .mkt-section-head .mkt-eyebrow-sm { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); font-weight: 600; margin-bottom: 8px; }
+  .mkt-section-head h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .mkt-section-head p { color: var(--muted); font-size: 13px; }
+
+  .mkt-problem-card { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 14px; }
+  .mkt-problem-num { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--teal); margin-bottom: 10px; }
+  .mkt-problem-card h3 { font-size: 16px; margin-bottom: 8px; }
+  .mkt-problem-card p { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+  .mkt-problem-fix { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: var(--ink); border-top: 1px dashed var(--line); padding-top: 12px; }
+  .mkt-problem-fix b { color: var(--green); }
+
+  .mkt-feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .mkt-feature-card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .mkt-f-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; margin-bottom: 10px; background: linear-gradient(135deg, var(--green), var(--teal)); color: #241A02; }
+  .mkt-feature-card h3 { font-size: 13.5px; margin-bottom: 5px; font-weight: 600; }
+  .mkt-feature-card p { font-size: 11.5px; color: var(--muted); }
+  @media (max-width: 480px) { .mkt-feature-grid { grid-template-columns: 1fr; } }
+
+  .mkt-trust-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .mkt-trust-cell { text-align: center; padding: 16px 8px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; }
+  .mkt-trust-cell .num { font-family: 'IBM Plex Mono', monospace; font-size: 16px; color: var(--teal); font-weight: 500; }
+  .mkt-trust-cell .lbl { font-size: 10.5px; color: var(--muted); margin-top: 5px; }
+
+  .mkt-faq-list { display: flex; flex-direction: column; gap: 10px; }
+  .mkt-faq-item { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .mkt-faq-q { width: 100%; text-align: left; background: none; border: none; color: var(--ink); font-family: 'Space Grotesk', sans-serif; font-size: 13.5px; font-weight: 600; padding: 14px 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+  .mkt-faq-q .mkt-chev { transition: transform 0.25s ease; color: var(--teal); }
+  .mkt-faq-item.mkt-open .mkt-faq-q .mkt-chev { transform: rotate(45deg); }
+  .mkt-faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+  .mkt-faq-item.mkt-open .mkt-faq-a { max-height: 240px; }
+  .mkt-faq-a p { padding: 0 16px 14px; font-size: 12.5px; color: var(--muted); }
+  .remit-country-item:hover { background: var(--bg); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <a href="./landing.html" class="brand" style="cursor:pointer; color:inherit; text-decoration:none;">
+      <div class="brand-mark">A</div>
+      <div class="brand-name" data-i18n="brandName">Arcistan</div>
+    </a>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button class="lang-toggle" id="langToggle">اردو</button>
+    </div>
+  </header>
+
+  <div class="wallet-bar" id="walletBar">
+    <div class="wb-status">
+      <span class="wb-dot" id="wbDot"></span>
+      <span id="statusLine" data-i18n="notConnected">Not connected</span>
+      <span id="wbBalanceChip" style="display:none; margin-left:6px; padding:3px 9px; border-radius:20px; background:rgba(255,255,255,0.15); font-size:11px;"></span>
+    </div>
+    <div class="wb-actions">
+      <button id="wbTierBadge" title="Your ArcPoints tier" style="display:none; background:rgba(255,255,255,0.15); border:none; border-radius:20px; padding:5px 11px; font-size:12px; font-weight:600; color:#fff; cursor:pointer;"></button>
+      <button class="wb-faucet" id="faucetBtn" title="Get free testnet USDC">🚰 Faucet</button>
+      <button class="wb-connect" id="connectBtn" data-i18n="connectWallet">Connect Wallet</button>
+    </div>
+  </div>
+  <div id="onchainInfoLine" style="display:none; font-size:11px; color:var(--muted); margin:-14px 0 18px; text-align:right;"></div>
+
+  <div id="tierPopupOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:250; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:var(--bg-2); border:1px solid var(--line); border-radius:16px; padding:24px; max-width:340px; width:100%;">
+      <div style="text-align:center; margin-bottom:16px;">
+        <div id="tierPopupEmoji" style="font-size:36px;">🥉</div>
+        <div id="tierPopupName" style="font-size:18px; font-weight:600; margin-top:4px;">Starter</div>
+        <div id="tierPopupPts" style="font-size:13px; color:var(--muted); margin-top:2px;">0 APts</div>
+      </div>
+      <div id="tierPopupList" style="display:flex; flex-direction:column; gap:8px; margin-bottom:18px;"></div>
+      <button class="primary" id="tierPopupDetailsBtn" style="margin-top:0;">View Full Details →</button>
+      <button id="tierPopupCloseBtn" style="width:100%; margin-top:10px; background:transparent; border:none; color:var(--muted); font-size:13px; cursor:pointer; padding:8px;">Close</button>
+    </div>
+  </div>
+
+  <div class="wallet-modal-overlay" id="walletModalOverlay">
+    <div class="wallet-modal">
+      <div class="wm-head">
+        <h3 data-i18n="selectWallet">Select a wallet</h3>
+        <button class="wm-close" id="walletModalClose">✕</button>
+      </div>
+      <div class="wm-list" id="walletModalList"></div>
+      <div class="wm-note" data-i18n="phantomNote">Note: Phantom is a Solana wallet by default — enable its Ethereum/EVM mode in Phantom settings to use it here.</div>
+    </div>
+  </div>
+
+  <nav class="top-tabs" id="topTabs">
+    <button class="top-tab active" data-tabgroup="home" data-i18n="tabHome">Home</button>
+    <button class="top-tab" data-tabgroup="savings" data-i18n="tabSavings">Savings</button>
+    <button class="top-tab" data-tabgroup="pay" data-i18n="tabPay">Pay</button>
+    <button class="top-tab" data-tabgroup="history" data-i18n="tabHistory">History</button>
+    <button class="top-tab" data-tabgroup="profile" data-i18n="tabProfile">Profile</button>
+  </nav>
+
+  <div class="nudge-banner" id="nudgeBanner">
+    <span data-i18n="nudgeMsg">💤 Aap ne is mahine kuch save nahi kiya abhi tak.</span>
+    <button class="alert-dismiss" id="nudgeDismiss" style="background:none; color:var(--gold); font-size:16px; border:none; cursor:pointer;">✕</button>
+  </div>
+
+  <div class="alert-banner" id="devalAlert">
+    <span data-i18n="devalMsg">⚠️ Rupee has weakened today — good time to convert.</span>
+    <div style="display:flex; gap:6px; align-items:center;">
+      <button id="devalConvertBtn" data-i18n="devalCta">Convert now</button>
+      <button class="alert-dismiss" id="devalDismiss">✕</button>
+    </div>
+  </div>
+
+  <div class="mkt-hero-copy tab-panel active-tab" data-tab="home">
+    <div class="mkt-eyebrow"><span class="rt-dot"></span> Live on Arc Testnet</div>
+    <h1>Protect your Rupee.<br>Move money <span class="mkt-grad">without borders.</span></h1>
+    <p class="mkt-sub">Arcistan converts PKR to USDC instantly and gives freelancers and overseas Pakistanis a direct payment gateway — no bank account, no paperwork, no delays.</p>
+    <div class="mkt-stats-bar">
+      <div class="mkt-stat-cell"><div class="num">15-25%</div><div class="lbl">PKR lost to inflation / yr</div></div>
+      <div class="mkt-stat-cell"><div class="num">$0.01 flat</div><div class="lbl">Remittance fee</div></div>
+      <div class="mkt-stat-cell"><div class="num">&lt;1s</div><div class="lbl">Arc finality</div></div>
+      <div class="mkt-stat-cell"><div class="num">~$0.01</div><div class="lbl">Network fee</div></div>
+    </div>
+  </div>
+
+  <div class="hero tab-panel active-tab" data-tab="home">
+    <div class="seal">
+      <div class="amount"><span>$</span><span id="balanceAmount">0.00</span></div>
+      <div class="label" data-i18n="usdcBalance">USDC Balance</div>
+    </div>
+    <div class="sub-value"><span data-i18n="pkrBalanceLabel">PKR Balance</span>: <b id="pkrEquivalent">Rs 0</b></div>
+    <div class="rate-ticker">
+      <span class="rt-dot"></span>
+      <span id="rateTickerText">1 USD ≈ Rs 280.00</span>
+      <span class="rt-delta" id="rateDelta"></span>
+    </div>
+    <div class="network-chip">
+      <span class="network-dot"></span>
+      <span data-i18n="networkVal">Arc Testnet</span>
+      <span class="network-chip-sep">·</span>
+      <span data-i18n="statusVal">All systems operational</span>
+    </div>
+  </div>
+
+  <div class="card tab-panel active-tab" data-tab="home">
+    <h2 data-i18n="alertTitle">Rate Alert</h2>
+    <div class="hint" data-i18n="alertHint">Set your own target rate — we'll notify you when it's hit.</div>
+    <div class="rate-alert-row">
+      <div class="field">
+        <label data-i18n="alertWhen">Notify me when 1 USD reaches</label>
+        <input type="number" id="rateAlertInput" placeholder="285" />
+      </div>
+      <button class="primary" style="margin-top:0; width:auto; padding:12px 18px;" id="rateAlertSetBtn" data-i18n="alertSet">Set</button>
+    </div>
+    <div class="rate-alert-active" id="rateAlertActive">
+      <span id="rateAlertActiveText"></span>
+      <button id="rateAlertClearBtn" data-i18n="alertClear">Remove</button>
+    </div>
+  </div>
+
+  <div class="card tab-panel active-tab" data-tab="home">
+    <h2 data-i18n="hiwTitle">How It Works</h2>
+    <div class="hint" data-i18n="hiwHint">Three simple steps — no crypto knowledge needed.</div>
+    <div class="hiw-steps">
+      <div class="hiw-step">
+        <div class="hiw-num">1</div>
+        <p data-i18n="hiw1">Enter a rupee amount and swap it into <b>USDC</b> on-chain — a digital dollar that always equals $1, so inflation can't eat into it.</p>
+      </div>
+      <div class="hiw-step">
+        <div class="hiw-num">2</div>
+        <p data-i18n="hiw2">It settles in under a second on Arc, and only <b>you</b> hold the keys — Arcistan never has custody of your money.</p>
+      </div>
+      <div class="hiw-step">
+        <div class="hiw-num">3</div>
+        <p data-i18n="hiw3">Swap back to rupees, pay bills, or send money <b>anytime you want</b> — no waiting, no lock-in.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="mkt-section-head tab-panel active-tab" data-tab="home">
+    <div class="mkt-eyebrow-sm">The Problem</div>
+    <h2>Two things broken about money in Pakistan</h2>
+    <p>Arcistan exists to fix both, on the same rail.</p>
+  </div>
+  <div class="tab-panel active-tab" data-tab="home">
+    <div class="mkt-problem-card">
+      <div class="mkt-problem-num">01</div>
+      <h3>Your savings quietly lose value</h3>
+      <p>The Rupee loses 15-25% of its value every year. Money sitting in a bank account or under a mattress is losing purchasing power even when the number on the screen stays the same.</p>
+      <div class="mkt-problem-fix"><b>Fix:</b> Convert PKR to USDC in seconds — your savings hold stable dollar value instead of eroding silently.</div>
+    </div>
+    <div class="mkt-problem-card">
+      <div class="mkt-problem-num">02</div>
+      <h3>Freelancers have no direct payment gateway</h3>
+      <p>Pakistan has no simple cross-border payment platform built for its freelancers and remote workers. Getting paid by an international client, or sending money home from abroad, means bank wire delays, high cuts, and paperwork.</p>
+      <div class="mkt-problem-fix"><b>Fix:</b> Get paid straight into a USDC wallet — flat low fee, no bank in the middle, arrives in seconds, from anywhere in the world.</div>
+    </div>
+  </div>
+
+  <div class="mkt-section-head tab-panel active-tab" data-tab="home">
+    <div class="mkt-eyebrow-sm">What's Inside</div>
+    <h2>Everything you need to save and move money</h2>
+  </div>
+  <div class="mkt-feature-grid tab-panel active-tab" data-tab="home" style="margin-bottom:20px;">
+    <div class="mkt-feature-card"><div class="mkt-f-icon">⇄</div><h3>Instant Convert</h3><p>Swap PKR to USDC and back, anytime, at a live rate.</p></div>
+    <div class="mkt-feature-card"><div class="mkt-f-icon">✈</div><h3>Get Paid From Abroad</h3><p>Freelancers and overseas Pakistanis receive USDC directly, flat fee.</p></div>
+    <div class="mkt-feature-card"><div class="mkt-f-icon">↻</div><h3>Auto-Save</h3><p>Recurring PKR→USDC conversion, so protecting savings is automatic.</p></div>
+    <div class="mkt-feature-card"><div class="mkt-f-icon">◎</div><h3>Goal Pockets</h3><p>Protect savings for rent, a trip, or an emergency fund.</p></div>
+    <div class="mkt-feature-card"><div class="mkt-f-icon">◫</div><h3>Group Savings</h3><p>Save toward a shared goal with family or friends.</p></div>
+    <div class="mkt-feature-card"><div class="mkt-f-icon">▦</div><h3>QR Pay, Top-Up & Bills</h3><p>Spend directly from your USDC balance.</p></div>
+  </div>
+
+  <div class="mkt-section-head tab-panel active-tab" data-tab="home">
+    <div class="mkt-eyebrow-sm">Built On</div>
+    <h2>Arc Network, by Circle</h2>
+  </div>
+  <div class="mkt-trust-grid tab-panel active-tab" data-tab="home" style="margin-bottom:20px;">
+    <div class="mkt-trust-cell"><div class="num">&lt;1s</div><div class="lbl">Transaction finality</div></div>
+    <div class="mkt-trust-cell"><div class="num">USDC</div><div class="lbl">Native gas asset</div></div>
+    <div class="mkt-trust-cell"><div class="num">~$0.01</div><div class="lbl">Per-transaction fee</div></div>
+    <div class="mkt-trust-cell"><div class="num">Testnet</div><div class="lbl">Current network stage</div></div>
+  </div>
+
+  <div class="mkt-section-head tab-panel active-tab" data-tab="home">
+    <div class="mkt-eyebrow-sm">Questions</div>
+    <h2>Frequently asked</h2>
+  </div>
+  <div class="mkt-faq-list tab-panel active-tab" data-tab="home" id="mktFaqList" style="margin-bottom:20px;">
+    <div class="mkt-faq-item">
+      <button class="mkt-faq-q">Can I use Arcistan to get paid by an international client? <span class="mkt-chev">+</span></button>
+      <div class="mkt-faq-a"><p>Yes — a client anywhere in the world can send USDC directly to your Arcistan wallet. No Payoneer/Wise-style approval process, no waiting days for a bank transfer to clear.</p></div>
+    </div>
+    <div class="mkt-faq-item">
+      <button class="mkt-faq-q">How is Arcistan different from Payoneer or a bank wire? <span class="mkt-chev">+</span></button>
+      <div class="mkt-faq-a"><p>Payoneer and bank wires route through multiple intermediaries, each taking a cut and adding delay. Arcistan settles directly on Arc Network — a flat ~$0.01 fee and under a second, with no intermediary bank involved.</p></div>
+    </div>
+    <div class="mkt-faq-item">
+      <button class="mkt-faq-q">Is my money actually converted, or is this just a display number? <span class="mkt-chev">+</span></button>
+      <div class="mkt-faq-a"><p>Every convert, deposit, and withdraw is a real transaction on Arc testnet — your balance reflects an actual on-chain USDC holding, not just a number on screen.</p></div>
+    </div>
+    <div class="mkt-faq-item">
+      <button class="mkt-faq-q">Is this legal in Pakistan? <span class="mkt-chev">+</span></button>
+      <div class="mkt-faq-a"><p>Arcistan is currently a testnet product for building and demonstration purposes. Regulation around crypto assets in Pakistan is still developing — this isn't legal advice.</p></div>
+    </div>
+  </div>
+
+  <div class="card tab-panel" data-tab="profile">
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:18px;">
+      <div id="profileAvatar" style="width:56px; height:56px; border-radius:16px; background:linear-gradient(135deg, var(--green), var(--teal)); color:#241A02; display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:22px; flex-shrink:0; box-shadow:0 8px 20px -6px rgba(201,162,39,0.4);">?</div>
+      <div>
+        <div id="profileNameDisplay" style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:17px;" data-i18n="profileNoName">Add your name</div>
+        <div id="profileWalletDisplay" style="font-size:12px; color:var(--muted); font-family:'IBM Plex Mono',monospace;">Not connected</div>
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <label data-i18n="profileFirstNameLabel">First Name</label>
+      <input type="text" id="profileFirstNameInput" placeholder="e.g. Sufyan" />
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <label data-i18n="profileLastNameLabel">Last Name</label>
+      <input type="text" id="profileLastNameInput" placeholder="e.g. Khan" />
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <label data-i18n="profilePhoneLabel">Phone Number</label>
+      <input type="text" id="profilePhoneInput" placeholder="03xx-xxxxxxx" />
+    </div>
+    <div class="field" style="margin-bottom:14px;">
+      <label data-i18n="profileCnicLabel">CNIC / Passport Number</label>
+      <input type="text" id="profileCnicInput" placeholder="xxxxx-xxxxxxx-x or passport no." />
+    </div>
+    <button class="primary" id="profileSaveBtn" data-i18n="profileSaveBtn">Save Profile</button>
+  </div>
+
+  <div class="card trust-card tab-panel" data-tab="profile">
+    <h2 data-i18n="trustTitle">Your money is safe</h2>
+    <div class="hint" data-i18n="trustHint">A simple explanation of where your savings actually go.</div>
+    <div class="trust-points">
+      <div class="trust-point">
+        <div class="trust-icon">$</div>
+        <p data-i18n="trust1"><b>USDC</b> is a digital dollar — each one is always worth exactly $1, backed 1-to-1 by real US dollar reserves.</p>
+      </div>
+      <div class="trust-point">
+        <div class="trust-icon">🔒</div>
+        <p data-i18n="trust2">Your savings live in <b>your own wallet</b> — not our bank account. Only you hold the keys.</p>
+      </div>
+      <div class="trust-point">
+        <div class="trust-icon">↺</div>
+        <p data-i18n="trust3">You can withdraw back to <b>PKR anytime</b> — there's no lock-in period.</p>
+      </div>
+    </div>
+    <div class="kyc-badge" id="kycBadge">🪪 <span data-i18n="kycNotDone">Identity not verified — tap to verify</span></div>
+  </div>
+
+  <div class="card tab-panel" data-tab="profile">
+    <h2 data-i18n="networkTitle">Network &amp; Contract</h2>
+    <div class="hint" data-i18n="networkHint">Full transparency on where your funds actually live on-chain.</div>
+    <div class="network-row">
+      <span data-i18n="networkLabel">Network</span>
+      <b><span class="net-dot"></span> <span data-i18n="networkVal">Arc Testnet</span></b>
+    </div>
+    <div class="network-row">
+      <span data-i18n="contractLabel">USDC Contract</span>
+      <b class="mono-addr">0x8f3a…c21e</b>
+    </div>
+    <div class="network-row">
+      <span data-i18n="statusLabel">System Status</span>
+      <b class="status-ok"><span class="net-dot"></span> <span data-i18n="statusVal">All systems operational</span></b>
+    </div>
+    <a href="#" class="explorer-link" id="explorerLink" data-i18n="explorerLink">View on Block Explorer ↗</a>
+  </div>
+
+  <div class="card tab-panel" data-tab="profile">
+    <h2 data-i18n="legalTitle">Terms &amp; Risk Disclosure</h2>
+    <div class="hint" data-i18n="legalHint">Please read before using real funds.</div>
+    <div class="trust-points">
+      <div class="trust-point">
+        <div class="trust-icon" style="background:var(--gold); color:var(--ink);">!</div>
+        <p data-i18n="legalPoint1">🧪 <b>Testnet only</b> — nothing here uses real money. Balances reset and carry no value.</p>
+      </div>
+      <div class="trust-point">
+        <div class="trust-icon" style="background:var(--red);">!</div>
+        <p data-i18n="legalPoint2">📉 Digital assets carry risk, including smart-contract and market risk, even when pegged to $1.</p>
+      </div>
+    </div>
+    <div class="legal-links">
+      <a href="#" data-i18n="legalTerms">Terms of Service</a>
+      <a href="#" data-i18n="legalPrivacy">Privacy Policy</a>
+      <a href="#" data-i18n="legalFaq">FAQ / Docs</a>
+    </div>
+  </div>
+
+  <div class="card tab-panel" data-tab="savings">
+    <span class="dw-badge">Testnet Demo</span>
+    <h2 data-i18n="dwTitle">Swap</h2>
+    <div class="hint" data-i18n="dwHint">Your only real balance is USDC. Cashing out moves it into your PKR Balance at today's rate. Swapping back pulls from that same PKR Balance — at whatever the rate is then.</div>
+
+    <div class="dw-tabs">
+      <button class="dw-tab active" data-tab="deposit" id="dwTabDeposit" data-i18n="depositTab">Swap Back to USDC</button>
+      <button class="dw-tab" data-tab="withdraw" id="dwTabWithdraw" data-i18n="withdrawTab">Cash Out to PKR</button>
+    </div>
+
+    <div class="field" style="margin-top:16px;">
+      <label id="dwAmountLabel">Amount (PKR)</label>
+      <input type="number" id="dwAmountInput" placeholder="0" />
+    </div>
+
+    <button class="primary" id="dwSubmitBtn">Swap to USDC</button>
+    <div class="rate-note" id="dwBalanceNote" style="margin-top:10px; font-weight:600;"></div>
+    <div class="rate-note" id="dwNote" style="margin-top:6px;">Real testnet transaction on Arc — no real money moves yet, this is testnet only.</div>
+  </div>
+
+  <div class="card tab-panel" data-tab="savings">
+    <div class="toggle-row">
+      <div>
+        <div class="tr-label" data-i18n="autoSaveTitle">Auto-Save</div>
+        <div class="tr-sub" data-i18n="autoSaveHint">Automatically convert PKR to USDC every month</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="autoSaveToggle" />
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="auto-save-detail" id="autoSaveDetail">
+      <div class="auto-save-row">
+        <div class="field">
+          <label data-i18n="autoSaveAmount">Amount (PKR / month)</label>
+          <input type="number" id="autoSaveAmount" placeholder="5000" value="5000" />
+        </div>
+        <div class="field">
+          <label data-i18n="autoSaveDay">Day of month</label>
+          <select id="autoSaveDay"></select>
+        </div>
+      </div>
+      <button class="primary" id="autoSaveSaveBtn" data-i18n="autoSaveSave">Confirm Auto-Save</button>
+      <div class="next-run" id="autoSaveNextRun" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div class="card tab-panel" data-tab="savings">
+    <h2 data-i18n="groupTitle">Family / Group Savings</h2>
+    <div class="hint" data-i18n="groupHint">Like a digital committee (BC) — everyone contributes toward one shared goal.</div>
+    <div class="rate-note" id="groupBalanceNote" style="margin-bottom:10px;">Connect your wallet to contribute from your USDC balance.</div>
+    <div id="groupMembersList"></div>
+    <div class="roundup-summary" style="margin-top:14px;">
+      <span data-i18n="groupTotal">Total contributed</span>
+      <b id="groupTotalAmt">0.00 USDC</b>
+    </div>
+    <div class="hint" id="groupAddHint" style="margin:14px 0 8px; font-size:12px;" data-i18n="groupAddHint">Enter a name and amount, then tap the button below to send it as a real transaction — it'll show up in the list above once confirmed.</div>
+    <div class="group-add-row" style="align-items:center;">
+      <input type="text" id="groupMemberName" placeholder="Member name" />
+      <input type="number" id="groupMemberAmt" placeholder="USDC" />
+    </div>
+    <button class="primary" id="groupAddBtn" title="Add contribution" style="margin-top:10px; width:100%;" data-i18n="groupAdd">➕ Add Contribution</button>
+  </div>
+
+  <div class="card tab-panel" data-tab="pay">
+    <h2 data-i18n="qrTitle">Pay / Receive via QR</h2>
+    <div class="hint" data-i18n="qrHint">Scan to send USDC directly to another Arcistan user.</div>
+    <div class="qr-box">
+      <img id="qrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=save-in-dollars-demo" width="180" height="180" alt="QR code" />
+      <div class="rate-note" id="qrAddressLine" data-i18n="qrConnectFirst">Connect your wallet to generate your receive code</div>
+    </div>
+  </div>
+
+  <div class="card tab-panel" data-tab="savings">
+    <h2 data-i18n="badgesTitle">Milestones</h2>
+    <div class="hint" data-i18n="badgesHint">Little wins along the way — set your own target too.</div>
+    <div class="badges-grid" id="badgesGrid"></div>
+    <div id="customMilestonesList"></div>
+    <div class="group-add-row" style="align-items:center; margin-top:16px;">
+      <input type="number" id="customMilestoneInput" placeholder="Custom target (USDC)" style="flex:1;" />
+      <button id="customMilestoneBtn" title="Create this milestone" style="flex:0 0 auto; padding:0 16px; height:40px; border-radius:8px; background:var(--green); color:#fff; border:none; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;">🎯 Set Target</button>
+    </div>
+  </div>
+
+  <div class="card tab-panel" data-tab="savings">
+    <h2 data-i18n="convertTitle">Convert PKR → USDC</h2>
+    <div class="hint" data-i18n="convertHint">Swap from your PKR Balance back into USDC, instantly.</div>
+    <div class="convert-row">
+      <div class="field">
+        <label data-i18n="youSend">You send</label>
+        <input type="number" id="pkrInput" placeholder="0" value="10000" />
+        <div class="rate-note">PKR</div>
+        <div class="rate-note" id="convertAvailableNote" style="margin-top:2px; color:var(--teal);">Available: Rs 0</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="field">
+        <label data-i18n="youReceive">You receive</label>
+        <input type="text" id="usdcOutput" readonly />
+        <div class="rate-note">USDC</div>
+      </div>
+    </div>
+    <div class="rate-note" id="rateLine">1 USD ≈ Rs 280</div>
+    <div class="fee-note">
+      <span data-i18n="feeLabel">Fee</span>
+      <span><b id="feeAmount">Rs 0</b> <span class="fee-badge" data-i18n="noHidden">· no hidden charges (0.1% flat) + tiny network gas</span></span>
+    </div>
+    <button class="primary" id="convertBtn" data-i18n="convertBtnTxt">Convert &amp; Save</button>
+  </div>
+
+  <div class="card tab-panel" data-tab="savings">
+    <h2 data-i18n="goalsTitle">Saving Goals</h2>
+    <div class="hint" data-i18n="goalsHint">Split your USDC savings into goals — track progress toward each one.</div>
+    <div class="rate-note" id="goalsBalanceNote" style="margin-bottom:10px;">Connect your wallet to see how close you are.</div>
+    <div id="goalsList" style="display:flex; flex-direction:column; gap:14px;"></div>
+    <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+      <input type="text" id="goalNameInput" placeholder="Goal name (e.g. Emergency Fund)" style="flex:1.4; border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-family:'Inter',sans-serif; font-size:13px; background:var(--bg); color:var(--ink);" />
+      <input type="number" id="goalTargetInput" placeholder="Target USDC" style="flex:1; border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-family:'IBM Plex Mono',monospace; font-size:13px; background:var(--bg); color:var(--ink);" />
+      <input type="date" id="goalDeadlineInput" style="flex:1; border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-family:'Inter',sans-serif; font-size:13px; background:var(--bg); color:var(--ink);" />
+    </div>
+    <button class="primary" id="addGoalBtn" style="margin-top:10px;" data-i18n="addGoal">Add Goal</button>
+  </div>
+
+  <div class="card tab-panel" data-tab="pay">
+    <span class="dw-badge">Testnet Demo</span>
+    <h2 data-i18n="remitTitle">Send Money from Abroad</h2>
+    <div class="hint" data-i18n="remitHint">Overseas Pakistanis can send USD straight into a family member's savings — no bank delays.</div>
+    <div class="field" style="margin-bottom:14px; position:relative;">
+      <label data-i18n="remitCountry">Sending from</label>
+      <input type="text" id="remitCountrySearch" placeholder="Type to search a country…" autocomplete="off"
+        style="width:100%; border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-family:'Inter',sans-serif; font-size:13px; background:var(--bg); color:var(--ink);" />
+      <input type="hidden" id="remitCountry" value="United States" />
+      <div id="remitCountryDropdown" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:50; margin-top:4px; max-height:220px; overflow-y:auto; background:var(--bg-2); border:1px solid var(--line); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.5);"></div>
+    </div>
+    <div class="convert-row">
+      <div class="field">
+        <label data-i18n="remitSend">You send (USD)</label>
+        <input type="number" id="remitUsdInput" placeholder="0" value="100" />
+      </div>
+      <div class="arrow">→</div>
+      <div class="field">
+        <label data-i18n="remitReceive">Recipient gets (USDC)</label>
+        <input type="text" id="remitUsdcOutput" readonly />
+      </div>
+    </div>
+    <div class="field" style="margin-top:14px;">
+      <label data-i18n="remitRecipient">Recipient wallet address</label>
+      <input type="text" id="remitRecipientInput" placeholder="0x… wallet address" />
+    </div>
+    <div class="fee-note">
+      <span data-i18n="feeLabel">Fee</span>
+      <span><b id="remitFee">$0.01</b> <span class="fee-badge" data-i18n="remitFeeNote">· flat $0.01 — a fraction of typical bank/wire fees (often $15-40)</span></span>
+    </div>
+    <div class="rate-note" id="remitBalanceNote" style="margin-bottom:10px;">Connect your wallet to see your available balance.</div>
+    <button class="secondary" id="remitSendBtn" data-i18n="remitBtnTxt">Send Remittance</button>
+  </div>
+
+  <div class="card tab-panel" data-tab="pay">
+    <span class="dw-badge">Testnet Demo</span>
+    <h2 data-i18n="topupTitle">Mobile Top-Up</h2>
+    <div class="hint" data-i18n="topupHint">Top up any mobile number directly from your USDC savings.</div>
+    <div class="field" style="margin-bottom:14px;">
+      <label data-i18n="topupOperator">Operator</label>
+      <select id="topupOperator">
+        <option>Jazz</option>
+        <option>Telenor</option>
+        <option>Zong</option>
+        <option>Ufone</option>
+        <option>SCOM</option>
+      </select>
+    </div>
+    <div class="field" style="margin-bottom:14px;">
+      <label data-i18n="topupNumber">Mobile Number</label>
+      <input type="text" id="topupNumberInput" placeholder="03xx-xxxxxxx" />
+    </div>
+    <div class="rate-note" id="topupBalanceNote" style="margin-bottom:10px;">Connect your wallet to see your available balance.</div>
+    <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;" id="topupAmounts">
+      <button class="method-btn" data-amt="100">Rs 100</button>
+      <button class="method-btn" data-amt="300">Rs 300</button>
+      <button class="method-btn" data-amt="500">Rs 500</button>
+      <button class="method-btn" data-amt="1000">Rs 1000</button>
+    </div>
+    <button class="secondary" id="topupBtn" data-i18n="topupBtnTxt">Top Up Now</button>
+  </div>
+
+  <div class="card tab-panel" data-tab="profile" id="arcPointsCard">
+    <h2>💎 Your ArcPoints</h2>
+    <div class="hint">Earn ArcPoints every time you use a feature — no purchase, just real usage.</div>
+    <div style="text-align:center; padding:10px 0 16px;">
+      <div id="apTotalPts" style="font-family:'IBM Plex Mono', monospace; font-size:36px; font-weight:600; color:var(--gold);">0</div>
+      <div style="font-size:12px; color:var(--muted); letter-spacing:0.05em; text-transform:uppercase;">ArcPoints (APts)</div>
+      <div id="apTierLabel" style="margin-top:10px; font-size:16px; font-weight:600;">🥉 Starter</div>
+    </div>
+    <div style="background:var(--bg); border:1px solid var(--line); border-radius:8px; height:10px; overflow:hidden; margin-bottom:6px;">
+      <div id="apProgressBar" style="width:0%; height:100%; background:var(--teal); transition:width 0.3s ease;"></div>
+    </div>
+    <div id="apProgressNote" style="font-size:12px; color:var(--muted); text-align:center; margin-bottom:18px;"></div>
+    <div style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">How you earn APts</div>
+    <table style="width:100%; border-collapse:collapse; font-size:13px;">
+      <tbody id="apPointsTable"></tbody>
+    </table>
+  </div>
+
+  <div class="card tab-panel" data-tab="pay">
+    <h2 data-i18n="providerTitle">Pay Utility Bills</h2>
+    <div class="hint" data-i18n="providerHint">Electricity, gas, and water bills — pay any provider across Pakistan straight from your USDC savings.</div>
+
+    <div class="dw-tabs" id="billCategoryTabs">
+      <button class="dw-tab active" data-category="electricity" data-i18n="electricityTab">Electricity</button>
+      <button class="dw-tab" data-category="gas" data-i18n="gasTab">Gas</button>
+      <button class="dw-tab" data-category="water" data-i18n="waterTab">Water</button>
+    </div>
+
+    <div class="field" style="margin-bottom:14px;">
+      <label data-i18n="providerLabel">Provider</label>
+      <select id="billProviderSelect"></select>
+    </div>
+
+    <div class="field" style="margin-bottom:16px;">
+      <label data-i18n="consumerLabel">Consumer / Reference Number</label>
+      <input type="text" id="billConsumerInput" placeholder="e.g. 03-1234-5678901" />
+    </div>
+
+    <button class="secondary" id="billFetchBtn" data-i18n="fetchBill">Fetch Bill</button>
+
+    <div id="billResult" style="display:none; margin-top:16px; padding:14px; background:var(--bg); border:1px solid var(--line); border-radius:8px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <div style="font-size:12px; color:var(--muted);" id="billResultProvider"></div>
+          <div style="font-family:'IBM Plex Mono', monospace; font-size:20px; font-weight:500; margin-top:4px;" id="billResultAmount"></div>
+          <div style="font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--teal); margin-top:2px;" id="billResultUsdc"></div>
+        </div>
+        <div style="font-size:11px; color:var(--muted);" id="billResultDue"></div>
+      </div>
+      <div class="rate-note" id="billBalanceNote" style="margin-top:10px;"></div>
+      <button class="primary" id="billPayBtn" style="margin-top:10px;" data-i18n="payBill">Pay Bill</button>
+      <div class="rate-note" style="margin-top:10px;" data-i18n="billDemoNote">Demo bill amounts for testing — live billing integration with real providers is coming.</div>
+    </div>
+  </div>
+
+  <div class="card tab-panel" data-tab="pay">
+    <h2 data-i18n="billsPaidTitle">Bills Paid This Month</h2>
+    <div class="hint" data-i18n="billsPaidHint">A running record of your utility payments, saved on this device.</div>
+    <div id="billsPaidList" style="display:flex; flex-direction:column; gap:10px;"></div>
+  </div>
+
+  <div class="card tab-panel active-tab" data-tab="home">
+    <h2 data-i18n="chartTitle">Rupee vs. Digital Dollar</h2>
+    <div class="hint" data-i18n="chartHint">What Rs 100,000 would be worth today if saved a year ago</div>
+    <div class="chart-wrap">
+      <svg viewBox="0 0 640 220" preserveAspectRatio="xMidYMid meet">
+        <line x1="0" y1="55" x2="640" y2="55" style="stroke:var(--line)" stroke-width="1"/>
+        <line x1="0" y1="110" x2="640" y2="110" style="stroke:var(--line)" stroke-width="1"/>
+        <line x1="0" y1="165" x2="640" y2="165" style="stroke:var(--line)" stroke-width="1"/>
+        <!-- PKR losing value -->
+        <polyline fill="none" style="stroke:var(--red)" stroke-width="2.5"
+          points="0,60 106,78 213,95 320,112 426,135 533,150 640,168" />
+        <!-- USDC flat -->
+        <polyline fill="none" style="stroke:var(--teal)" stroke-width="2.5"
+          points="0,58 106,58 213,57 320,58 426,57 533,58 640,58" />
+        <circle cx="640" cy="168" r="4" style="fill:var(--red)" />
+        <circle cx="640" cy="58" r="4" style="fill:var(--teal)" />
+      </svg>
+    </div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--teal)"></i><span data-i18n="legendUsdc">USDC — holds value</span></span>
+      <span><i class="dot" style="background:var(--red)"></i><span data-i18n="legendPkr">PKR — loses value to inflation</span></span>
+    </div>
+  </div>
+
+  <div class="card tab-panel" data-tab="history">
+    <h2 data-i18n="historyTitle">Transaction History</h2>
+    <div class="hint" data-i18n="historyHint">Every conversion you've made, saved on this device.</div>
+    <div id="historyList" style="display:flex; flex-direction:column; gap:10px;">
+      <div style="font-size:13px; color:var(--muted); text-align:center; padding:16px 0;" id="historyEmpty" data-i18n="historyEmptyTxt">No conversions yet — try one above.</div>
+    </div>
+    <button class="secondary" id="exportCsvBtn" style="margin-top:16px;" data-i18n="exportCsv">Export Statement (CSV)</button>
+  </div>
+
+  <footer data-i18n="footerTxt">Arcistan — prototype UI, connected to Arc testnet</footer>
+
+  <div id="toast" style="
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--green); color: #FBFAF6; padding: 14px 22px; border-radius: 10px;
+    font-size: 14px; font-weight: 500; opacity: 0; transition: all 0.25s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2); pointer-events: none; z-index: 100; max-width: 90%; text-align: center;
+  "></div>
+</div>
+
+<!-- PIN Lock -->
+<div class="pin-overlay" id="pinOverlay">
+  <div class="brand-mark">A</div>
+  <h2 id="pinTitle" data-i18n="pinSetTitle">Set a PIN to protect your savings</h2>
+  <p id="pinSubtitle" data-i18n="pinSetSubtitle">4-digit PIN, used only on this device</p>
+  <div class="pin-dots" id="pinDots">
+    <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+  </div>
+  <div class="pin-keypad" id="pinKeypad">
+    <button class="pin-key" data-k="1">1</button><button class="pin-key" data-k="2">2</button><button class="pin-key" data-k="3">3</button>
+    <button class="pin-key" data-k="4">4</button><button class="pin-key" data-k="5">5</button><button class="pin-key" data-k="6">6</button>
+    <button class="pin-key" data-k="7">7</button><button class="pin-key" data-k="8">8</button><button class="pin-key" data-k="9">9</button>
+    <button class="pin-key" data-k="clear">⌫</button><button class="pin-key" data-k="0">0</button><button class="pin-key" data-k="ok">✓</button>
+  </div>
+  <div class="pin-error" id="pinError"></div>
+  <button class="pin-skip" id="pinSkipBtn" data-i18n="pinSkip">Skip for now</button>
+</div>
+
+<!-- WhatsApp support -->
+<a class="whatsapp-float" id="whatsappBtn" href="https://wa.me/923000000000?text=Hi%2C%20I%20need%20help%20with%20Save%20in%20Dollars" target="_blank" rel="noopener" title="WhatsApp Support">💬</a>
+
+<!-- KYC Modal -->
+<div class="modal-overlay" id="kycModal">
+  <div class="modal-box">
+    <h2 data-i18n="kycModalTitle">Quick Identity Check</h2>
+    <div class="hint" data-i18n="kycModalHint">Just a few details — required by regulation to keep your money safe. Takes 30 seconds.</div>
+    <div class="field">
+      <label style="display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:6px;" data-i18n="profileFirstNameLabel">First Name</label>
+      <input type="text" id="kycFirstName" placeholder="e.g. Ayesha" />
+    </div>
+    <div class="field">
+      <label style="display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:6px;" data-i18n="profileLastNameLabel">Last Name</label>
+      <input type="text" id="kycLastName" placeholder="e.g. Khan" />
+    </div>
+    <div class="field">
+      <label style="display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:6px;" data-i18n="profilePhoneLabel">Phone Number</label>
+      <input type="text" id="kycPhone" placeholder="03xx-xxxxxxx" />
+    </div>
+    <div class="field">
+      <label style="display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:6px;" data-i18n="profileCnicLabel">CNIC / Passport Number</label>
+      <input type="text" id="kycCnic" placeholder="xxxxx-xxxxxxx-x" maxlength="15" />
+    </div>
+    <div class="modal-actions">
+      <button class="modal-skip" id="kycSkipBtn" data-i18n="kycSkip">Later</button>
+      <button class="primary" id="kycSubmitBtn" style="margin-top:0;" data-i18n="kycSubmit">Verify Me</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ---------------- i18n ---------------- */
+  const translations = {
+    en: {
+      brandName: "Arcistan", devalMsg: "⚠️ Rupee has weakened today — good time to convert.",
+      devalCta: "Convert now", notConnected: "Not connected", connectWallet: "Connect Wallet",
+      usdcBalance: "USDC Balance", equivTo: "Equivalent to", atRate: "at today's rate", pkrBalanceLabel: "PKR Balance",
+      pkrWalletLabel: "Your PKR wallet",
+      trustTitle: "Your money is safe", trustHint: "A simple explanation of where your savings actually go.",
+      trust1: "<b>USDC</b> is a digital dollar — each one is always worth exactly $1, backed 1-to-1 by real US dollar reserves.",
+      trust2: "Your savings live in <b>your own wallet</b> — not our bank account. Only you hold the keys.",
+      trust3: "You can withdraw back to <b>PKR anytime</b> — there's no lock-in period.",
+      kycNotDone: "Identity not verified — tap to verify", kycDone: "Identity verified",
+      dwTitle: "Swap", dwHint: "Your only real balance is USDC. Cashing out moves it into your PKR Balance at today's rate. Swapping back pulls from that same PKR Balance — at whatever the rate is then.",
+      depositTab: "Swap Back to USDC", withdrawTab: "Cash Out to PKR", bankTransfer: "Bank Transfer",
+      autoSaveTitle: "Auto-Save", autoSaveHint: "Automatically convert PKR to USDC every month",
+      autoSaveAmount: "Amount (PKR / month)", autoSaveDay: "Day of month", autoSaveSave: "Confirm Auto-Save",
+      convertTitle: "Convert PKR → USDC", convertHint: "Swap from your PKR Balance back into USDC, instantly.",
+      youSend: "You send", youReceive: "You receive", feeLabel: "Fee", noHidden: "· no hidden charges (0.1% flat) + tiny network gas",
+      convertBtnTxt: "Convert &amp; Save",
+      goalsTitle: "Saving Goals", goalsHint: "Split your USDC savings into goals — track progress toward each one.",
+      addGoal: "Add Goal",
+      remitTitle: "Send Money from Abroad", remitHint: "Overseas Pakistanis can send USD straight into a family member's savings — no bank delays.",
+      remitCountry: "Sending from", remitSend: "You send (USD)", remitReceive: "Recipient gets (USDC)",
+      remitRecipient: "Recipient wallet address", remitFeeNote: "· flat $0.01 — a fraction of typical bank/wire fees (often $15-40)", remitBtnTxt: "Send Remittance",
+      topupTitle: "Mobile Top-Up", topupHint: "Top up any mobile number directly from your USDC savings.",
+      topupOperator: "Operator", topupNumber: "Mobile Number", topupBtnTxt: "Top Up Now",
+      providerTitle: "Pay Utility Bills", providerHint: "Electricity, gas, and water bills — pay any provider across Pakistan straight from your USDC savings.",
+      electricityTab: "Electricity", gasTab: "Gas", waterTab: "Water", providerLabel: "Provider",
+      consumerLabel: "Consumer / Reference Number", fetchBill: "Fetch Bill", payBill: "Pay Bill",
+      billDemoNote: "Demo bill amounts for testing — live billing integration with real providers is coming.",
+      profileNoName: "Add your name", profileFirstNameLabel: "First Name", profileLastNameLabel: "Last Name", profilePhoneLabel: "Phone Number", profileCnicLabel: "CNIC / Passport Number", profileSaveBtn: "Save Profile",
+      selectWallet: "Select a wallet", phantomNote: "Note: Phantom is a Solana wallet by default — enable its Ethereum/EVM mode in Phantom settings to use it here.",
+      billsPaidTitle: "Bills Paid This Month", billsPaidHint: "A running record of your utility payments, saved on this device.",
+      chartTitle: "Rupee vs. Digital Dollar", chartHint: "What Rs 100,000 would be worth today if saved a year ago",
+      legendUsdc: "USDC — holds value", legendPkr: "PKR — loses value to inflation",
+      historyTitle: "Transaction History", historyHint: "Every conversion you've made, saved on this device.",
+      historyEmptyTxt: "No conversions yet — try one above.",
+      footerTxt: "Arcistan — prototype UI, connected to Arc testnet",
+      kycModalTitle: "Quick Identity Check", kycModalHint: "Just 3 details — required by regulation to keep your money safe. Takes 30 seconds.",
+      kycNameLabel: "Full Name", kycCnicLabel: "CNIC Number", kycPhoneLabel: "Mobile Number",
+      kycSkip: "Later", kycSubmit: "Verify Me",
+      nudgeMsg: "💤 You haven't saved anything this month yet.",
+      yieldTxt: "Earning ~4% APY", alertTitle: "Rate Alert", alertHint: "Set your own target rate — we'll notify you when it's hit.",
+      alertWhen: "Notify me when 1 USD reaches", alertSet: "Set", alertClear: "Remove",
+      hiwTitle: "How It Works", hiwHint: "Three simple steps — no crypto knowledge needed.",
+      hiw1: "Enter a rupee amount and swap it into <b>USDC</b> on-chain — a digital dollar that always equals $1, so inflation can't eat into it.",
+      hiw2: "It settles in under a second on Arc, and only <b>you</b> hold the keys — Arcistan never has custody of your money.",
+      hiw3: "Swap back to rupees, pay bills, or send money <b>anytime you want</b> — no waiting, no lock-in.",
+      groupTitle: "Family / Group Savings", groupHint: "Like a digital committee (BC) — everyone contributes toward one shared goal.",
+      groupTotal: "Total contributed", groupAdd: "➕ Add Contribution",
+      groupAddHint: "Enter a name and amount, then tap the button below to send it as a real transaction — it'll show up in the list above once confirmed.",
+      qrTitle: "Pay / Receive via QR", qrHint: "Scan to send USDC directly to another Arcistan user.",
+      qrConnectFirst: "Connect your wallet to generate your receive code",
+      badgesTitle: "Milestones", badgesHint: "Little wins along the way to your first $100 saved.",
+      exportCsv: "Export Statement (CSV)",
+      pinSetTitle: "Set a PIN to protect your savings", pinSetSubtitle: "4-digit PIN, used only on this device",
+      pinEnterTitle: "Enter your PIN", pinEnterSubtitle: "Welcome back", pinSkip: "Skip for now",
+      pinMismatch: "PINs didn't match, try again", pinWrong: "Wrong PIN, try again",
+      tabHome: "Home", tabSavings: "Savings", tabPay: "Pay", tabHistory: "History", tabProfile: "Profile",
+      networkTitle: "Network & Contract", networkHint: "Full transparency on where your funds actually live on-chain.",
+      networkLabel: "Network", networkVal: "Arc Testnet", contractLabel: "USDC Contract",
+      explorerLink: "View on Block Explorer ↗", statusLabel: "System Status", statusVal: "All systems operational",
+      custodyTitle: "Non-Custodial by Design", custodyHint: "We never hold your funds — here's exactly what that means.",
+      custody1: "<b>Only you</b> control the private keys to your wallet. Arcistan cannot move your funds without your approval.",
+      custody2: "Smart contracts are used <b>as-is</b> on Arc Testnet — this is a demo environment for testing, not audited for mainnet.",
+      legalTitle: "Terms & Risk Disclosure", legalHint: "Please read before using real funds.",
+      legalPoint1: "🧪 <b>Testnet only</b> — nothing here uses real money. Balances reset and carry no value.",
+      legalPoint2: "📉 Digital assets carry risk, including smart-contract and market risk, even when pegged to $1.",
+      legalTerms: "Terms of Service", legalPrivacy: "Privacy Policy", legalFaq: "FAQ / Docs",
+      txPending: "Pending", txConfirming: "Confirming", txConfirmed: "Confirmed",
+      txStateTitle: "Transaction status",
+    },
+    ur: {
+      brandName: "Arcistan", devalMsg: "⚠️ روپے کی قدر آج کم ہوئی ہے — ابھی کنورٹ کرنے کا اچھا وقت ہے۔",
+      devalCta: "ابھی کنورٹ کریں", notConnected: "منسلک نہیں", connectWallet: "والیٹ جوڑیں",
+      usdcBalance: "یو ایس ڈی سی بیلنس", equivTo: "برابر ہے", atRate: "آج کی شرح پر", pkrBalanceLabel: "پی کے آر بیلنس",
+      pkrWalletLabel: "آپ کا PKR والیٹ",
+      trustTitle: "آپ کا پیسہ محفوظ ہے", trustHint: "سادہ الفاظ میں سمجھیں کہ آپ کی بچت کہاں جاتی ہے۔",
+      trust1: "<b>یو ایس ڈی سی</b> ایک ڈیجیٹل ڈالر ہے — ہر ایک کی قیمت ہمیشہ $1 کے برابر ہوتی ہے، اصل امریکی ڈالر ذخائر سے مکمل طور پر محفوظ۔",
+      trust2: "آپ کی بچت <b>آپ کے اپنے والیٹ</b> میں رہتی ہے — ہمارے بینک اکاؤنٹ میں نہیں۔ صرف آپ کے پاس چابیاں ہیں۔",
+      trust3: "آپ کسی بھی وقت <b>پی کے آر میں واپس</b> نکلوا سکتے ہیں — کوئی لاک ان نہیں۔",
+      kycNotDone: "شناخت تصدیق نہیں ہوئی — تصدیق کے لیے دبائیں", kycDone: "شناخت تصدیق شدہ",
+      dwTitle: "تبدیل کریں", dwHint: "آپ کا حقیقی بیلنس صرف USDC ہے۔ Cash Out کرنے سے وہ آج کی شرح پر آپ کے PKR بیلنس میں چلا جاتا ہے۔ واپس USDC میں تبدیل کرنے پر وہی PKR بیلنس استعمال ہوتا ہے — اُس وقت کی شرح پر۔",
+      depositTab: "واپس USDC میں تبدیل کریں", withdrawTab: "PKR میں کیش آؤٹ کریں", bankTransfer: "بینک ٹرانسفر",
+      autoSaveTitle: "خودکار بچت", autoSaveHint: "ہر مہینے خودکار طور پر پی کے آر کو یو ایس ڈی سی میں تبدیل کریں",
+      autoSaveAmount: "رقم (پی کے آر / ماہانہ)", autoSaveDay: "مہینے کا دن", autoSaveSave: "خودکار بچت کی تصدیق کریں",
+      convertTitle: "پی کے آر → یو ایس ڈی سی کنورٹ کریں", convertHint: "اپنی بچت کو فوری طور پر مستحکم ڈیجیٹل ڈالر میں تبدیل کریں۔",
+      youSend: "آپ بھیجیں", youReceive: "آپ کو ملے گا", feeLabel: "فیس", noHidden: "· کوئی پوشیدہ چارجز نہیں (0.1% فلیٹ) + معمولی نیٹ ورک گیس",
+      convertBtnTxt: "کنورٹ اور محفوظ کریں",
+      goalsTitle: "بچت کے اہداف", goalsHint: "اپنی یو ایس ڈی سی بچت کو اہداف میں تقسیم کریں۔",
+      addGoal: "ہدف شامل کریں",
+      remitTitle: "بیرون ملک سے رقم بھیجیں", remitHint: "بیرون ملک پاکستانی خاندان کے فرد کی بچت میں براہ راست ڈالر بھیج سکتے ہیں۔",
+      remitCountry: "کہاں سے بھیج رہے ہیں", remitSend: "آپ بھیجیں (USD)", remitReceive: "وصول کنندہ کو ملے گا (USDC)",
+      remitRecipient: "وصول کنندہ کا والیٹ ایڈریس", remitFeeNote: "· فلیٹ $0.01 — بینک وائر فیس (اکثر $15-40) کے مقابلے میں نہ ہونے کے برابر", remitBtnTxt: "رقم بھیجیں",
+      topupTitle: "موبائل ٹاپ اپ", topupHint: "کسی بھی موبائل نمبر کو براہ راست اپنی یو ایس ڈی سی بچت سے ٹاپ اپ کریں۔",
+      topupOperator: "آپریٹر", topupNumber: "موبائل نمبر", topupBtnTxt: "ابھی ٹاپ اپ کریں",
+      providerTitle: "یوٹیلیٹی بل ادا کریں", providerHint: "بجلی، گیس اور پانی کے بل — پاکستان بھر میں کسی بھی فراہم کنندہ کو یو ایس ڈی سی سے ادا کریں۔",
+      electricityTab: "بجلی", gasTab: "گیس", waterTab: "پانی", providerLabel: "فراہم کنندہ",
+      consumerLabel: "کنزیومر / حوالہ نمبر", fetchBill: "بل حاصل کریں", payBill: "بل ادا کریں",
+      billDemoNote: "ابھی یہ ڈیمو ڈیٹا ہے — حقیقی فراہم کنندگان کے ساتھ لائیو انٹیگریشن جلد آ رہا ہے۔",
+      profileNoName: "اپنا نام شامل کریں", profileFirstNameLabel: "پہلا نام", profileLastNameLabel: "آخری نام", profilePhoneLabel: "فون نمبر", profileCnicLabel: "شناختی کارڈ / پاسپورٹ نمبر", profileSaveBtn: "پروفائل محفوظ کریں",
+      selectWallet: "والیٹ منتخب کریں", phantomNote: "نوٹ: Phantom بنیادی طور پر Solana والیٹ ہے — یہاں استعمال کے لیے اس کی Ethereum/EVM موڈ آن کریں۔",
+      billsPaidTitle: "اس مہینے ادا شدہ بل", billsPaidHint: "آپ کی یوٹیلیٹی ادائیگیوں کا ریکارڈ، اسی ڈیوائس پر محفوظ۔",
+      chartTitle: "روپیہ بمقابلہ ڈیجیٹل ڈالر", chartHint: "اگر ایک سال پہلے Rs 100,000 بچائے ہوتے تو آج کتنے ہوتے",
+      legendUsdc: "یو ایس ڈی سی — قدر برقرار", legendPkr: "پی کے آر — افراط زر سے قدر میں کمی",
+      historyTitle: "لین دین کی تاریخ", historyHint: "آپ کی ہر کنورژن، اسی ڈیوائس پر محفوظ۔",
+      historyEmptyTxt: "ابھی کوئی کنورژن نہیں — اوپر آزمائیں۔",
+      footerTxt: "Arcistan — پروٹوٹائپ یو آئی، آرک ٹیسٹ نیٹ سے منسلک",
+      kycModalTitle: "فوری شناختی چیک", kycModalHint: "بس 3 تفصیلات — آپ کے پیسے کی حفاظت کے لیے ضابطے کے تحت لازمی۔ 30 سیکنڈ لگیں گے۔",
+      kycNameLabel: "پورا نام", kycCnicLabel: "شناختی کارڈ نمبر", kycPhoneLabel: "موبائل نمبر",
+      kycSkip: "بعد میں", kycSubmit: "میری تصدیق کریں",
+      nudgeMsg: "💤 آپ نے اس مہینے ابھی تک کچھ نہیں بچایا۔",
+      yieldTxt: "تقریباً 4% سالانہ منافع", alertTitle: "ریٹ الرٹ", alertHint: "اپنی مرضی کی شرح مقرر کریں — پہنچنے پر ہم آپ کو بتائیں گے۔",
+      alertWhen: "مجھے بتائیں جب 1 USD اس تک پہنچے", alertSet: "سیٹ کریں", alertClear: "ہٹائیں",
+      hiwTitle: "یہ کیسے کام کرتا ہے", hiwHint: "تین آسان اقدامات — کرپٹو کی سمجھ کی ضرورت نہیں۔",
+      hiw1: "روپے کی رقم درج کریں اور اسے آن چین <b>USDC</b> میں تبدیل کریں — ایک ڈیجیٹل ڈالر جو ہمیشہ $1 کے برابر رہتا ہے۔",
+      hiw2: "یہ Arc پر ایک سیکنڈ سے کم میں مکمل ہوتا ہے، اور صرف <b>آپ</b> کے پاس چابیاں ہوتی ہیں — Arcistan کبھی آپ کے پیسے پر قبضہ نہیں رکھتا۔",
+      hiw3: "کسی بھی وقت روپوں میں واپس تبدیل کریں، بل ادا کریں یا رقم بھیجیں — کوئی انتظار نہیں۔",
+      groupTitle: "خاندانی / گروپ بچت", groupHint: "ڈیجیٹل کمیٹی کی طرح — سب مل کر ایک ہدف کی طرف حصہ ڈالیں۔",
+      groupTotal: "کل حصہ", groupAdd: "➕ حصہ شامل کریں",
+      groupAddHint: "نام اور رقم درج کریں، پھر نیچے دیے گئے بٹن پر ٹیپ کریں تاکہ یہ ایک حقیقی ٹرانزیکشن کے طور پر بھیجا جائے — تصدیق ہونے پر یہ اوپر فہرست میں نظر آئے گا۔",
+      qrTitle: "کیو آر سے ادائیگی / وصولی", qrHint: "کسی دوسرے صارف کو براہ راست یو ایس ڈی سی بھیجنے کے لیے اسکین کریں۔",
+      qrConnectFirst: "اپنا وصولی کوڈ بنانے کے لیے والیٹ جوڑیں",
+      badgesTitle: "سنگ میل", badgesHint: "آپ کے پہلے $100 تک چھوٹی چھوٹی کامیابیاں۔",
+      exportCsv: "اسٹیٹمنٹ ایکسپورٹ کریں (CSV)",
+      pinSetTitle: "اپنی بچت کی حفاظت کے لیے پن سیٹ کریں", pinSetSubtitle: "4 ہندسوں کا پن، صرف اسی ڈیوائس پر",
+      pinEnterTitle: "اپنا پن درج کریں", pinEnterSubtitle: "خوش آمدید", pinSkip: "ابھی کے لیے چھوڑیں",
+      pinMismatch: "پن مماثل نہیں تھے، دوبارہ کوشش کریں", pinWrong: "غلط پن، دوبارہ کوشش کریں",
+      tabHome: "ہوم", tabSavings: "بچت", tabPay: "ادائیگی", tabHistory: "ہسٹری", tabProfile: "پروفائل",
+      networkTitle: "نیٹ ورک اور کنٹریکٹ", networkHint: "آپ کا پیسہ آن چین کہاں موجود ہے — مکمل شفافیت۔",
+      networkLabel: "نیٹ ورک", networkVal: "آرک ٹیسٹ نیٹ", contractLabel: "یو ایس ڈی سی کنٹریکٹ",
+      explorerLink: "بلاک ایکسپلورر پر دیکھیں ↗", statusLabel: "سسٹم اسٹیٹس", statusVal: "تمام سسٹمز فعال ہیں",
+      custodyTitle: "غیر امانتی ڈیزائن", custodyHint: "ہم کبھی آپ کا پیسہ نہیں رکھتے — یہاں اس کی مکمل وضاحت ہے۔",
+      custody1: "<b>صرف آپ</b> اپنے والیٹ کی پرائیویٹ کیز کو کنٹرول کرتے ہیں۔ Arcistan آپ کی اجازت کے بغیر رقم منتقل نہیں کر سکتا۔",
+      custody2: "اسمارٹ کنٹریکٹس آرک ٹیسٹ نیٹ پر <b>جیسے ہیں ویسے</b> استعمال ہوتے ہیں — یہ ٹیسٹنگ کے لیے ایک ڈیمو ماحول ہے، مین نیٹ کے لیے آڈٹ شدہ نہیں۔",
+      legalTitle: "شرائط اور خطرے کا اظہار", legalHint: "اصل رقم استعمال کرنے سے پہلے براہ کرم پڑھیں۔",
+      legalPoint1: "🧪 <b>صرف ٹیسٹ نیٹ</b> — یہاں کوئی اصل رقم استعمال نہیں ہوتی۔ بیلنس ری سیٹ ہو سکتا ہے اور اس کی کوئی قیمت نہیں۔",
+      legalPoint2: "📉 ڈیجیٹل اثاثوں میں خطرہ شامل ہے، بشمول اسمارٹ کنٹریکٹ اور مارکیٹ رسک، چاہے $1 سے منسلک ہوں۔",
+      legalTerms: "شرائط و ضوابط", legalPrivacy: "پرائیویسی پالیسی", legalFaq: "عمومی سوالات / دستاویزات",
+      txPending: "زیر التوا", txConfirming: "تصدیق ہو رہی ہے", txConfirmed: "تصدیق شدہ",
+      txStateTitle: "ٹرانزیکشن اسٹیٹس",
+    }
+  };
+  let currentLang = localStorage.getItem('saveInDollars_lang') || 'en';
+
+  function applyTranslations() {
+    const dict = translations[currentLang];
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (dict[key] !== undefined) el.innerHTML = dict[key];
+    });
+    document.documentElement.setAttribute('dir', currentLang === 'ur' ? 'rtl' : 'ltr');
+    document.getElementById('langToggle').textContent = currentLang === 'ur' ? 'English' : 'اردو';
+    updateKycBadge();
+    updateAutoSaveUI();
+  }
+
+  document.getElementById('langToggle').addEventListener('click', () => {
+    currentLang = currentLang === 'en' ? 'ur' : 'en';
+    localStorage.setItem('saveInDollars_lang', currentLang);
+    applyTranslations();
+  });
+
+  /* ---------------- Rate / conversion ---------------- */
+  // Real USD→PKR rate from a free, no-key FX API (open.er-api.com, updated ~daily).
+  // We cache the last real rate in localStorage so there's never a "0" or fake
+  // number on screen while the first fetch is in flight or if it ever fails.
+  const RATE_API_URL = 'https://open.er-api.com/v6/latest/USD';
+  const RATE_CACHE_KEY = 'saveInDollars_last_real_rate';
+  let RATE = parseFloat(localStorage.getItem(RATE_CACHE_KEY)) || 280; // session-start baseline (for the devaluation alert), overwritten by first real fetch
+  let liveRate = RATE;
+  let rateIsLive = false; // becomes true once a real API value has landed
+  const pkrInput = document.getElementById('pkrInput');
+  const usdcOutput = document.getElementById('usdcOutput');
+  const feeAmount = document.getElementById('feeAmount');
+  const FEE_PCT = 0.001;
+
+  /* ---------------- PKR + USDC virtual ledger ---------------- */
+  // These are the two balances the whole app runs on. Every screen (Convert, Swap, Goals,
+  // Group Savings, Bills, Top-Up, Remittance) reads and writes the SAME two numbers here,
+  // so nothing can show a stale or "random" figure — there's exactly one source of truth.
+  const USDC_BAL_KEY = 'saveInDollars_usdc_balance';
+  // PKR is NEVER a stored balance — there is exactly one real balance (USDC). Anywhere PKR
+  // needs to be shown, it is calculated on the fly as usdcBalance * liveRate. This avoids the
+  // old bug where a separate PKR ledger and the USDC balance could drift apart and double-count.
+  localStorage.removeItem('saveInDollars_pkr_balance');
+  localStorage.removeItem('saveInDollars_pkr_app_ledger');
+  // Real on-chain balance (read from the connected wallet — this is what the faucet fills up).
+  // The app-tracked ledger above (USDC_BAL_KEY) only ever recorded swaps done inside the app,
+  // so it ignored whatever was already sitting in the wallet — that's why the balance shown
+  // could read 0 even with faucet funds present. getUsdcBalance()/setUsdcBalance() now always
+  // work with the combined total (wallet + app ledger) so every screen shows the real number.
+  let onchainUsdc = 0;
+  function getAppLedgerUsdc() {
+    const v = parseFloat(localStorage.getItem(USDC_BAL_KEY));
+    return isNaN(v) ? 0 : v;
+  }
+  function getUsdcBalance() {
+    return getAppLedgerUsdc() + onchainUsdc;
+  }
+  function setUsdcBalance(usdc) {
+    // usdc is the desired TOTAL (wallet + app ledger). The app-ledger portion is allowed to go
+    // negative here — that's what represents "we just sent a real spend transaction and the
+    // wallet's on-chain balance hasn't been re-read yet". Clamping this to 0 was the bug: it
+    // silently threw away every reduction below the last-known on-chain figure, so Cash Out /
+    // Bill Pay / Top-Up looked like they did nothing. The next refreshBalance() call re-reads
+    // the real on-chain number and this settles back to a consistent total either way.
+    const clampedTotal = Math.max(0, usdc);
+    const appPortion = clampedTotal - onchainUsdc;
+    localStorage.setItem(USDC_BAL_KEY, appPortion);
+    balanceAmount.textContent = formatUsd(clampedTotal);
+    updateWbBalanceChip(clampedTotal);
+    if (typeof updateTopupAvailability === 'function') updateTopupAvailability();
+    if (typeof renderGroup === 'function') renderGroup();
+    if (typeof renderGoals === 'function') renderGoals();
+    if (typeof updateRemitBalanceNote === 'function') updateRemitBalanceNote();
+    if (typeof updateDwBalanceNote === 'function') updateDwBalanceNote();
+    return clampedTotal;
+  }
+
+  // ---- Real, independent PKR balance ----
+  // Starts at 0. The ONLY way to get PKR is to Cash Out USDC → PKR (below), which locks in
+  // the rate at that moment (like real cash — it doesn't silently re-value itself afterward).
+  // Swapping PKR → USDC pulls back out of this same bucket, at whatever the rate is *then* —
+  // which is also the honest way to show PKR losing value if it just sits here.
+  const PKR_BUCKET_KEY = 'saveInDollars_pkr_bucket';
+  function getPkrBucket() {
+    const v = parseFloat(localStorage.getItem(PKR_BUCKET_KEY));
+    return isNaN(v) ? 0 : v;
+  }
+  function setPkrBucket(pkrAmount) {
+    const clamped = Math.max(0, pkrAmount);
+    localStorage.setItem(PKR_BUCKET_KEY, clamped);
+    pkrEquivalent.textContent = 'Rs ' + Math.round(clamped).toLocaleString('en-US');
+    const convertNote = document.getElementById('convertAvailableNote');
+    if (convertNote) convertNote.textContent = 'Available: Rs ' + Math.round(clamped).toLocaleString('en-US');
+    if (typeof updateDwBalanceNote === 'function') updateDwBalanceNote();
+    return clamped;
+  }
+
+  function syncLedgerUI() {
+    setUsdcBalance(getUsdcBalance());
+    setPkrBucket(getPkrBucket());
+  }
+
+  function updateConversion() {
+    const pkr = parseFloat(pkrInput.value) || 0;
+    const fee = pkr * FEE_PCT;
+    const usdc = ((pkr - fee) / liveRate).toFixed(2);
+    usdcOutput.value = usdc;
+    feeAmount.textContent = 'Rs ' + fee.toFixed(0);
+  }
+  pkrInput.addEventListener('input', updateConversion);
+
+  function updateRateDisplays() {
+    document.getElementById('rateLine').textContent = '1 USD ≈ Rs ' + liveRate.toFixed(2);
+    document.getElementById('rateTickerText').textContent = '1 USD ≈ Rs ' + liveRate.toFixed(2);
+  }
+
+  // Pull the real USD→PKR rate + occasional devaluation alert
+  let prevRate = RATE;
+  async function fetchRealRate() {
+    try {
+      const res = await fetch(RATE_API_URL);
+      if (!res.ok) throw new Error('FX API HTTP ' + res.status);
+      const data = await res.json();
+      const pkrRate = data && data.rates && data.rates.PKR;
+      if (!pkrRate || isNaN(pkrRate)) throw new Error('No PKR rate in FX API response');
+
+      prevRate = liveRate;
+      liveRate = pkrRate;
+      localStorage.setItem(RATE_CACHE_KEY, pkrRate);
+      if (!rateIsLive) {
+        // First real value that lands becomes the session baseline for the devaluation alert
+        RATE = pkrRate;
+        rateIsLive = true;
+      }
+
+      const delta = liveRate - prevRate;
+      const deltaEl = document.getElementById('rateDelta');
+      if (Math.abs(delta) > 0.005) {
+        deltaEl.textContent = (delta > 0 ? '▲ ' : '▼ ') + Math.abs(delta).toFixed(2);
+        deltaEl.className = 'rt-delta ' + (delta > 0 ? 'rt-up' : 'rt-down');
+      }
+      updateRateDisplays();
+      updateConversion();
+      updateRemitConversion();
+      // Note: PKR Balance is NOT re-computed here — it's a real, fixed Rupee amount from
+      // past swaps, not a live conversion of the USDC balance. Only the USDC-denominated
+      // "worth in Rupees right now" notes elsewhere use liveRate directly, on demand.
+      // Devaluation alert if rate has risen notably vs session start
+      if (liveRate - RATE > 3 && document.getElementById('devalAlert').dataset.dismissed !== 'true') {
+        document.getElementById('devalAlert').style.display = 'flex';
+      }
+    } catch (e) {
+      // Fetch failed (offline, API down) — keep showing the last real cached rate, never fall back to a fake number
+      console.warn('Live PKR rate fetch failed, keeping last known real rate:', e);
+    }
+  }
+  fetchRealRate();
+  setInterval(fetchRealRate, 60 * 60 * 1000); // open.er-api.com refreshes ~daily, so hourly polling is plenty
+
+  updateRateDisplays();
+  updateConversion();
+
+  document.getElementById('devalDismiss').addEventListener('click', () => {
+    document.getElementById('devalAlert').style.display = 'none';
+    document.getElementById('devalAlert').dataset.dismissed = 'true';
+  });
+  document.getElementById('devalConvertBtn').addEventListener('click', () => {
+    document.getElementById('devalAlert').style.display = 'none';
+    document.querySelector('#convertBtn').closest('.card').scrollIntoView({ behavior: 'smooth' });
+  });
+
+  /* ---------------- Transaction history ---------------- */
+  const HISTORY_KEY = 'saveInDollars_history';
+
+  function getHistory() {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch (e) { return []; }
+  }
+
+  function addHistoryEntry(pkr, usdc, label) {
+    const history = getHistory();
+    history.unshift({ pkr, usdc, label: label || null, date: new Date().toISOString() });
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 20)));
+    renderHistory();
+    if (typeof checkBadges === 'function') checkBadges();
+    document.getElementById('nudgeBanner')?.classList.remove('show');
+  }
+
+  function renderHistory() {
+    const history = getHistory();
+    const list = document.getElementById('historyList');
+    if (history.length === 0) {
+      list.innerHTML = `<div style="font-size:13px; color:var(--muted); text-align:center; padding:16px 0;" data-i18n="historyEmptyTxt">${translations[currentLang].historyEmptyTxt}</div>`;
+      return;
+    }
+    list.innerHTML = history.map(entry => {
+      const d = new Date(entry.date);
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      const isWithdraw = entry.label && (
+        entry.label.startsWith('Swap USDC') ||
+        entry.label.startsWith('Bill Payment') ||
+        entry.label.startsWith('Top-Up') ||
+        entry.label.startsWith('Remittance to') ||
+        entry.label.startsWith('Group Savings') ||
+        entry.label.startsWith('Goal Withdraw') ||
+        entry.label.startsWith('Milestone Withdraw')
+      );
+      const title = entry.label ? entry.label : `Rs ${entry.pkr.toLocaleString('en-US')} converted`;
+      const sign = isWithdraw ? '-' : '+';
+      return `
+        <div class="history-row">
+          <div class="h-left">
+            <div class="h-amounts">${title}</div>
+            <div class="h-date">${dateStr}</div>
+          </div>
+          <div class="h-usdc" style="${isWithdraw ? 'color:var(--red);' : ''}">${sign}${entry.usdc.toFixed(2)} USDC</div>
+        </div>
+      `;
+    }).join('');
+  }
+  renderHistory();
+
+  /* ---------------- Toast ---------------- */
+  const toast = document.getElementById('toast');
+  function showToast(message, isError) {
+    toast.textContent = message;
+    toast.style.background = isError ? '#B8532E' : 'var(--green)';
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(-50%) translateY(20px)';
+    }, 3200);
+  }
+
+  let connectedAddress = null;
+
+  document.getElementById('convertBtn').addEventListener('click', async () => {
+    if (!connectedAddress) { showToast('Connect your wallet first', true); return; }
+    const pkr = parseFloat(pkrInput.value) || 0;
+    const fee = pkr * FEE_PCT;
+    const usdcAmount = (pkr - fee) / liveRate;
+    if (usdcAmount <= 0) { showToast('Enter an amount to convert', true); return; }
+    if (pkr > getPkrBucket()) { showToast('Not enough in your PKR Balance — Cash Out some USDC first', true); return; }
+
+    const btn = document.getElementById('convertBtn');
+    const originalText = btn.textContent;
+    btn.textContent = 'Confirm in wallet…';
+    btn.disabled = true;
+
+    try {
+      const valueWei = '0x' + BigInt(Math.round(usdcAmount * 1e18)).toString(16);
+      await activeProvider.request({
+        method: 'eth_sendTransaction',
+        params: [{ from: connectedAddress, to: connectedAddress, value: valueWei }]
+      });
+      setPkrBucket(getPkrBucket() - pkr);
+      setUsdcBalance(getUsdcBalance() + usdcAmount);
+      addHistoryEntry(pkr, usdcAmount);
+      const goalMsg = allocateToGoal(usdcAmount);
+      showToast('✅ Converted ' + pkr.toLocaleString('en-US') + ' PKR → +' + usdcAmount.toFixed(2) + ' USDC' + (goalMsg ? ' · ' + goalMsg : ''));
+      addArcPoints(5, 'Swap');
+      // Reset the "you send" field — it's an amount to convert, not a running balance, so it
+      // should go back to empty/0 once used.
+      pkrInput.value = '';
+      updateConversion();
+      setTimeout(() => refreshBalance(connectedAddress), 2500);
+    } catch (err) {
+      console.error(err);
+      showToast('Transaction cancelled or failed', true);
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  });
+
+  /* ---------------- Wallet connect ---------------- */
+  const ARC_TESTNET = {
+    chainId: '0x4CEF52', chainName: 'Arc Testnet',
+    nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
+    rpcUrls: ['https://rpc.testnet.arc.network'], blockExplorerUrls: []
+  };
+
+  // Used for actions that genuinely spend USDC (Swap → PKR, Group contributions) so the
+  // wallet's real on-chain balance actually decreases — not just a self-send that costs gas
+  // but leaves the balance unchanged.
+  const TREASURY_ADDRESS = '0x000000000000000000000000000000000000dEaD';
+
+  const connectBtn = document.getElementById('connectBtn');
+  const statusLine = document.getElementById('statusLine');
+  const wbDot = document.getElementById('wbDot');
+  const balanceAmount = document.getElementById('balanceAmount');
+  const pkrEquivalent = document.getElementById('pkrEquivalent');
+  let activeProvider = null; // the specific injected provider the user picked
+
+  function formatUsd(n) { return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+  function updateWbBalanceChip(usdc) {
+    const chip = document.getElementById('wbBalanceChip');
+    if (!chip) return;
+    chip.style.display = 'inline';
+    chip.textContent = usdc.toFixed(2) + ' USDC';
+  }
+  async function refreshBalance(address) {
+    try {
+      const balHex = await activeProvider.request({ method: 'eth_getBalance', params: [address, 'latest'] });
+      const wei = BigInt(balHex);
+      const usdc = Number(wei) / 1e18;
+      onchainUsdc = usdc;
+      setUsdcBalance(getUsdcBalance()); // re-render main balance now that it includes the wallet's real funds
+      const info = document.getElementById('onchainInfoLine');
+      if (info) {
+        info.style.display = 'block';
+        info.textContent = (currentLang === 'ur' ? 'آن چین ٹیسٹ نیٹ بیلنس (فاسٹ سے): ' : 'On-chain testnet balance (from faucet): ') + usdc.toFixed(4) + ' USDC';
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  /* ---- EIP-6963 multi-wallet discovery ---- */
+  // Most modern EVM wallets (MetaMask, Rabby, OKX Wallet, Coinbase Wallet, Trust Wallet,
+  // Brave Wallet, Rainbow, etc.) announce themselves via this standard event, so any of
+  // them installed in the browser will show up automatically — no hardcoded list needed.
+  const discoveredWallets = new Map(); // uuid -> { info, provider }
+  window.addEventListener('eip6963:announceProvider', (event) => {
+    const { info, provider } = event.detail;
+    discoveredWallets.set(info.uuid, { info, provider });
+  });
+  window.dispatchEvent(new Event('eip6963:requestProvider'));
+
+  // Common wallets shown even if not detected yet, so the list looks complete —
+  // clicking one that isn't installed sends the user to install it instead of failing silently.
+  const KNOWN_WALLETS = [
+    { name: 'MetaMask', icon: '🦊', installUrl: 'https://metamask.io/download/' },
+    { name: 'Rabby Wallet', icon: '🐰', installUrl: 'https://rabby.io/' },
+    { name: 'OKX Wallet', icon: '⭕', installUrl: 'https://web3.okx.com/download' },
+    { name: 'Coinbase Wallet', icon: '🔵', installUrl: 'https://www.coinbase.com/wallet' },
+    { name: 'Trust Wallet', icon: '🛡️', installUrl: 'https://trustwallet.com/' },
+    { name: 'Brave Wallet', icon: '🦁', installUrl: 'https://brave.com/wallet/' },
+    { name: 'Rainbow', icon: '🌈', installUrl: 'https://rainbow.me/' },
+    { name: 'Zerion', icon: '⚡', installUrl: 'https://zerion.io/' },
+    { name: 'Phantom (EVM mode)', icon: '👻', installUrl: 'https://phantom.app/' },
+    { name: 'Other injected wallet', icon: '🔗', installUrl: null }
+  ];
+
+  const modalOverlay = document.getElementById('walletModalOverlay');
+  const modalList = document.getElementById('walletModalList');
+
+  function renderWalletModal() {
+    const detectedNames = new Set([...discoveredWallets.values()].map(w => w.info.name));
+    const rows = [];
+    // Detected, real providers first
+    discoveredWallets.forEach(({ info, provider }) => {
+      rows.push(`<div class="wm-item" data-uuid="${info.uuid}"><span class="wm-icon">${info.icon ? `<img src="${info.icon}" width="20" height="20" style="border-radius:6px;">` : '🔗'}</span>${info.name}<span class="wm-tag detected">● Detected</span></div>`);
+    });
+    // Known wallets not yet detected — offer install
+    KNOWN_WALLETS.filter(w => !detectedNames.has(w.name.replace(' (EVM mode)', ''))).forEach(w => {
+      rows.push(`<div class="wm-item" data-install="${w.installUrl || ''}"><span class="wm-icon">${w.icon}</span>${w.name}<span class="wm-tag">${w.installUrl ? 'Install' : ''}</span></div>`);
+    });
+    modalList.innerHTML = rows.join('');
+  }
+
+  function openWalletModal() { renderWalletModal(); modalOverlay.classList.add('show'); }
+  function closeWalletModal() { modalOverlay.classList.remove('show'); }
+  document.getElementById('walletModalClose').addEventListener('click', closeWalletModal);
+  modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeWalletModal(); });
+
+  modalList.addEventListener('click', async (e) => {
+    const item = e.target.closest('.wm-item');
+    if (!item) return;
+    if (item.dataset.uuid) {
+      const chosen = discoveredWallets.get(item.dataset.uuid);
+      closeWalletModal();
+      await connectWithProvider(chosen.provider);
+    } else if (item.dataset.install) {
+      window.open(item.dataset.install, '_blank');
+    } else {
+      showToast('Wallet not detected in this browser', true);
+    }
+  });
+
+  async function connectWithProvider(provider) {
+    try {
+      connectBtn.textContent = 'Connecting…';
+      const accounts = await provider.request({ method: 'eth_requestAccounts' });
+      try {
+        await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: ARC_TESTNET.chainId }] });
+      } catch (switchErr) {
+        if (switchErr.code === 4902) {
+          await provider.request({ method: 'wallet_addEthereumChain', params: [ARC_TESTNET] });
+        } else { throw switchErr; }
+      }
+      activeProvider = provider;
+      const address = accounts[0];
+      connectedAddress = address;
+      statusLine.textContent = address.slice(0, 6) + '…' + address.slice(-4) + ' · Arc Testnet';
+      wbDot.classList.add('connected');
+      connectBtn.textContent = 'Connected';
+      syncLedgerUI();
+      refreshBalance(address);
+      setupReferralCode(address);
+      updateQrForAddress(address);
+    } catch (err) {
+      statusLine.textContent = 'Connection failed — try again';
+      connectBtn.textContent = 'Connect Wallet';
+      console.error(err);
+    }
+  }
+
+  connectBtn.addEventListener('click', () => {
+    // If exactly one wallet is installed, skip the picker and connect straight to it.
+    if (discoveredWallets.size === 1) {
+      connectWithProvider([...discoveredWallets.values()][0].provider);
+    } else if (discoveredWallets.size === 0 && window.ethereum) {
+      connectWithProvider(window.ethereum); // fallback for browsers without EIP-6963 support
+    } else {
+      openWalletModal();
+    }
+  });
+
+  document.getElementById('faucetBtn').addEventListener('click', () => {
+    window.open('https://faucet.circle.com/', '_blank');
+  });
+
+  /* ---------------- Swap (was Deposit / Withdraw) ---------------- */
+  let dwTab = 'deposit';
+
+  const dwTabDeposit = document.getElementById('dwTabDeposit');
+  const dwTabWithdraw = document.getElementById('dwTabWithdraw');
+  const dwAmountLabel = document.getElementById('dwAmountLabel');
+  const dwAmountInput = document.getElementById('dwAmountInput');
+  const dwSubmitBtn = document.getElementById('dwSubmitBtn');
+  const dwNote = document.getElementById('dwNote');
+  const dwBalanceNote = document.getElementById('dwBalanceNote');
+
+  function updateDwBalanceNote() {
+    if (dwTab === 'deposit') {
+      dwBalanceNote.textContent = '💰 Available PKR Balance: Rs ' + Math.round(getPkrBucket()).toLocaleString('en-US');
+    } else {
+      dwBalanceNote.textContent = '💰 Available USDC: ' + getUsdcBalance().toFixed(2) + ' USDC';
+    }
+  }
+
+  function updateDwUI() {
+    dwAmountLabel.textContent = dwTab === 'deposit' ? 'Amount (PKR, from your PKR Balance)' : 'Amount (USDC)';
+    dwSubmitBtn.textContent = dwTab === 'deposit' ? 'Swap Back to USDC' : 'Cash Out to PKR';
+    const lockedRate = liveRate.toFixed(2);
+    dwNote.textContent = dwTab === 'deposit'
+      ? 'Pulls from your PKR Balance, converted at today\'s rate: Rs ' + lockedRate + '/USD.'
+      : 'Moves USDC into your PKR Balance, locked in at today\'s rate: Rs ' + lockedRate + '/USD.';
+    updateDwBalanceNote();
+  }
+
+  dwTabDeposit.addEventListener('click', () => { dwTab = 'deposit'; dwTabDeposit.classList.add('active'); dwTabWithdraw.classList.remove('active'); updateDwUI(); });
+  dwTabWithdraw.addEventListener('click', () => { dwTab = 'withdraw'; dwTabWithdraw.classList.add('active'); dwTabDeposit.classList.remove('active'); updateDwUI(); });
+
+  function getCurrentBalance() { return getUsdcBalance(); }
+  function setDisplayedBalance(usdc) { return setUsdcBalance(usdc); }
+
+  dwSubmitBtn.addEventListener('click', async () => {
+    if (!connectedAddress) { showToast('Connect your wallet first', true); return; }
+    const amount = Number(dwAmountInput.value) || 0;
+    if (amount <= 0) { showToast('Enter an amount first', true); return; }
+    const swapRate = liveRate; // lock the rate at the moment the swap is submitted
+
+    if (dwTab === 'deposit' && amount > getPkrBucket()) {
+      showToast('Not enough in your PKR Balance — Cash Out some USDC first', true);
+      return;
+    }
+    if (dwTab === 'withdraw' && amount > getUsdcBalance()) {
+      showToast('Insufficient USDC balance', true);
+      return;
+    }
+
+    const originalText = dwSubmitBtn.textContent;
+    dwSubmitBtn.disabled = true;
+    dwSubmitBtn.textContent = translations[currentLang].txPending + '… ⏳';
+
+    try {
+      if (dwTab === 'deposit') {
+        // Swapping PKR back to USDC: pulls out of the same PKR Balance bucket, converted
+        // at TODAY's rate — if the rate moved since you cashed out, you get more or less
+        // USDC back. That's not a bug — it's the exact inflation effect this app exists to show.
+        const usdcGained = amount / swapRate;
+        const valueWei = '0x' + BigInt(Math.round(usdcGained * 1e18)).toString(16);
+        showToast('Confirm the swap in your wallet…');
+        await activeProvider.request({
+          method: 'eth_sendTransaction',
+          params: [{ from: connectedAddress, to: connectedAddress, value: valueWei }]
+        });
+        dwSubmitBtn.textContent = translations[currentLang].txConfirming + '… 🔄';
+        setPkrBucket(getPkrBucket() - amount);
+        setUsdcBalance(getUsdcBalance() + usdcGained);
+        addHistoryEntry(amount, usdcGained, 'Swap PKR → USDC');
+        dwAmountInput.value = '';
+        dwSubmitBtn.textContent = translations[currentLang].txConfirmed + ' ✓';
+        showToast('✅ Swapped Rs ' + amount.toLocaleString('en-US') + ' → ' + usdcGained.toFixed(2) + ' USDC');
+        addArcPoints(5, 'Swap');
+        setTimeout(() => refreshBalance(connectedAddress), 2500);
+      } else {
+        // Cashing out: your real USDC balance goes down for real (sent to the treasury
+        // address, not back to yourself — a self-send never actually changes your balance),
+        // and that same value moves into your PKR Balance, locked in at today's rate.
+        const valueWei = '0x' + BigInt(Math.round(amount * 1e18)).toString(16);
+        showToast('Confirm the swap in your wallet…');
+        await activeProvider.request({
+          method: 'eth_sendTransaction',
+          params: [{ from: connectedAddress, to: TREASURY_ADDRESS, value: valueWei }]
+        });
+        dwSubmitBtn.textContent = translations[currentLang].txConfirming + '… 🔄';
+        const pkrOut = amount * swapRate;
+        setUsdcBalance(getUsdcBalance() - amount);
+        setPkrBucket(getPkrBucket() + pkrOut);
+        addHistoryEntry(pkrOut, amount, 'Swap USDC → PKR');
+        dwAmountInput.value = '';
+        dwSubmitBtn.textContent = translations[currentLang].txConfirmed + ' ✓';
+        showToast('✅ Swapped ' + amount.toFixed(2) + ' USDC → ' + Math.round(pkrOut).toLocaleString('en-US') + ' PKR');
+        addArcPoints(5, 'Swap');
+        setTimeout(() => refreshBalance(connectedAddress), 2000);
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Transaction cancelled or failed', true);
+    } finally {
+      setTimeout(() => {
+        dwSubmitBtn.disabled = false;
+        dwSubmitBtn.textContent = originalText;
+      }, 500);
+    }
+  });
+  updateDwUI();
+
+  /* ---------------- Auto-Save ---------------- */
+  const AUTOSAVE_KEY = 'saveInDollars_autosave';
+  const autoSaveToggle = document.getElementById('autoSaveToggle');
+  const autoSaveDetail = document.getElementById('autoSaveDetail');
+  const autoSaveDay = document.getElementById('autoSaveDay');
+  const autoSaveAmount = document.getElementById('autoSaveAmount');
+  const autoSaveNextRun = document.getElementById('autoSaveNextRun');
+
+  for (let d = 1; d <= 28; d++) {
+    const opt = document.createElement('option');
+    opt.value = d; opt.textContent = d;
+    autoSaveDay.appendChild(opt);
+  }
+
+  function getAutoSaveConfig() {
+    try { return JSON.parse(localStorage.getItem(AUTOSAVE_KEY)); } catch (e) { return null; }
+  }
+
+  function nextRunDate(day) {
+    const now = new Date();
+    let next = new Date(now.getFullYear(), now.getMonth(), day);
+    if (next <= now) next = new Date(now.getFullYear(), now.getMonth() + 1, day);
+    return next;
+  }
+
+  function updateAutoSaveUI() {
+    const cfg = getAutoSaveConfig();
+    if (cfg && cfg.enabled) {
+      autoSaveToggle.checked = true;
+      autoSaveDetail.classList.add('show');
+      autoSaveAmount.value = cfg.amount;
+      autoSaveDay.value = cfg.day;
+      const nd = nextRunDate(cfg.day);
+      autoSaveNextRun.style.display = 'block';
+      autoSaveNextRun.innerHTML = (currentLang === 'ur' ? 'اگلی خودکار بچت: ' : 'Next auto-save: ') +
+        '<b>' + nd.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) + '</b> · Rs ' + Number(cfg.amount).toLocaleString('en-US');
+    } else {
+      autoSaveToggle.checked = false;
+      autoSaveDetail.classList.remove('show');
+      autoSaveNextRun.style.display = 'none';
+    }
+  }
+
+  autoSaveToggle.addEventListener('change', () => {
+    if (autoSaveToggle.checked) {
+      autoSaveDetail.classList.add('show');
+    } else {
+      autoSaveDetail.classList.remove('show');
+      localStorage.removeItem(AUTOSAVE_KEY);
+      autoSaveNextRun.style.display = 'none';
+      showToast('Auto-save turned off');
+    }
+  });
+
+  document.getElementById('autoSaveSaveBtn').addEventListener('click', () => {
+    const amount = parseFloat(autoSaveAmount.value) || 0;
+    const day = parseInt(autoSaveDay.value) || 1;
+    if (amount <= 0) { showToast('Enter a valid monthly amount', true); return; }
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ enabled: true, amount, day }));
+    updateAutoSaveUI();
+    showToast('✅ Auto-save scheduled — Rs ' + amount.toLocaleString('en-US') + ' every month');
+  });
+  updateAutoSaveUI();
+
+  /* ---------------- Referral ---------------- */
+  /* ---------------- Profile ---------------- */
+  const PROFILE_KEY = 'saveInDollars_profile';
+  function getProfile() { try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || {}; } catch (e) { return {}; } }
+  function renderProfile() {
+    const p = getProfile();
+    document.getElementById('profileFirstNameInput').value = p.firstName || '';
+    document.getElementById('profileLastNameInput').value = p.lastName || '';
+    document.getElementById('profilePhoneInput').value = p.phone || '';
+    document.getElementById('profileCnicInput').value = p.cnic || '';
+    const fullName = [p.firstName, p.lastName].filter(Boolean).join(' ');
+    document.getElementById('profileNameDisplay').textContent = fullName || 'Add your name';
+    document.getElementById('profileAvatar').textContent = fullName ? fullName.trim()[0].toUpperCase() : '?';
+    document.getElementById('profileWalletDisplay').textContent = connectedAddress
+      ? connectedAddress.slice(0, 6) + '…' + connectedAddress.slice(-4)
+      : 'Not connected';
+  }
+  document.getElementById('profileSaveBtn').addEventListener('click', () => {
+    const firstName = document.getElementById('profileFirstNameInput').value.trim();
+    const lastName = document.getElementById('profileLastNameInput').value.trim();
+    const phone = document.getElementById('profilePhoneInput').value.trim();
+    const cnic = document.getElementById('profileCnicInput').value.trim();
+    localStorage.setItem(PROFILE_KEY, JSON.stringify({ firstName, lastName, phone, cnic }));
+    renderProfile();
+    showToast('✅ Profile saved');
+  });
+  renderProfile();
+
+  function setupReferralCode(address) {
+    renderProfile(); // refresh wallet address shown on profile once connected
+  }
+
+  /* ---------------- KYC Modal (writes directly into Profile — single source of truth) ---------------- */
+  const kycModal = document.getElementById('kycModal');
+  function getKyc() { const p = getProfile(); return p.verified ? p : null; }
+  function updateKycBadge() {
+    const badge = document.getElementById('kycBadge');
+    const kyc = getKyc();
+    if (kyc) {
+      badge.innerHTML = '✅ <span>' + translations[currentLang].kycDone + '</span>';
+    } else {
+      badge.innerHTML = '🪪 <span>' + translations[currentLang].kycNotDone + '</span>';
+    }
+  }
+  document.getElementById('kycBadge').addEventListener('click', () => {
+    const p = getProfile();
+    document.getElementById('kycFirstName').value = p.firstName || '';
+    document.getElementById('kycLastName').value = p.lastName || '';
+    document.getElementById('kycPhone').value = p.phone || '';
+    document.getElementById('kycCnic').value = p.cnic || '';
+    kycModal.classList.add('show');
+  });
+  function maybeShowKyc() {
+    if (!getKyc()) kycModal.classList.add('show');
+  }
+  document.getElementById('kycSkipBtn').addEventListener('click', () => kycModal.classList.remove('show'));
+  document.getElementById('kycSubmitBtn').addEventListener('click', () => {
+    const firstName = document.getElementById('kycFirstName').value.trim();
+    const lastName = document.getElementById('kycLastName').value.trim();
+    const phone = document.getElementById('kycPhone').value.trim();
+    const cnic = document.getElementById('kycCnic').value.trim();
+    if (!firstName || !phone || !cnic) { showToast('Please fill in your name, phone, and CNIC', true); return; }
+    localStorage.setItem(PROFILE_KEY, JSON.stringify({ firstName, lastName, phone, cnic, verified: true, verifiedDate: new Date().toISOString() }));
+    kycModal.classList.remove('show');
+    renderProfile();
+    updateKycBadge();
+    showToast('✅ Identity verified — thank you, ' + firstName + '!');
+  });
+  updateKycBadge();
+
+  /* ---------------- Remittance ---------------- */
+  const remitUsdInput = document.getElementById('remitUsdInput');
+  const remitUsdcOutput = document.getElementById('remitUsdcOutput');
+  const remitBalanceNote = document.getElementById('remitBalanceNote');
+
+  /* ---- Searchable country dropdown (custom-styled so it can't render white-on-white) ---- */
+  const REMIT_COUNTRIES = [
+    'Afghanistan', 'Albania', 'Algeria', 'Argentina', 'Armenia', 'Australia', 'Austria',
+    'Azerbaijan', 'Bahrain', 'Bangladesh', 'Belarus', 'Belgium', 'Bosnia and Herzegovina',
+    'Brazil', 'Brunei', 'Bulgaria', 'Cambodia', 'Canada', 'Chile', 'China', 'Colombia',
+    'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Egypt', 'Estonia', 'Ethiopia',
+    'Finland', 'France', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Hong Kong', 'Hungary',
+    'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Japan',
+    'Jordan', 'Kazakhstan', 'Kenya', 'Kuwait', 'Kyrgyzstan', 'Latvia', 'Lebanon', 'Libya',
+    'Lithuania', 'Luxembourg', 'Malaysia', 'Maldives', 'Malta', 'Mauritius', 'Mexico',
+    'Mongolia', 'Morocco', 'Myanmar', 'Nepal', 'Netherlands', 'New Zealand', 'Nigeria',
+    'Norway', 'Oman', 'Pakistan', 'Philippines', 'Poland', 'Portugal', 'Qatar', 'Romania',
+    'Russia', 'Saudi Arabia', 'Serbia', 'Singapore', 'Slovakia', 'Slovenia', 'South Africa',
+    'South Korea', 'Spain', 'Sri Lanka', 'Sudan', 'Sweden', 'Switzerland', 'Syria', 'Taiwan',
+    'Tajikistan', 'Tanzania', 'Thailand', 'Tunisia', 'Turkey', 'Turkmenistan', 'Uganda',
+    'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uzbekistan',
+    'Vietnam', 'Yemen'
+  ];
+  const remitCountrySearch = document.getElementById('remitCountrySearch');
+  const remitCountryHidden = document.getElementById('remitCountry');
+  const remitCountryDropdown = document.getElementById('remitCountryDropdown');
+
+  function renderCountryDropdown(filter) {
+    const q = (filter || '').toLowerCase();
+    const matches = REMIT_COUNTRIES.filter(c => c.toLowerCase().includes(q));
+    if (matches.length === 0) {
+      remitCountryDropdown.innerHTML = '<div style="padding:10px 12px; font-size:13px; color:var(--muted);">No matching country</div>';
+    } else {
+      remitCountryDropdown.innerHTML = matches.map(c =>
+        '<div class="remit-country-item" data-country="' + c + '" style="padding:10px 12px; font-size:13px; color:var(--ink); cursor:pointer;">' + c + '</div>'
+      ).join('');
+    }
+    remitCountryDropdown.style.display = 'block';
+  }
+  remitCountrySearch.value = remitCountryHidden.value;
+  remitCountrySearch.addEventListener('focus', () => renderCountryDropdown(''));
+  remitCountrySearch.addEventListener('input', () => renderCountryDropdown(remitCountrySearch.value));
+  remitCountryDropdown.addEventListener('click', (e) => {
+    const item = e.target.closest('.remit-country-item');
+    if (!item) return;
+    remitCountryHidden.value = item.dataset.country;
+    remitCountrySearch.value = item.dataset.country;
+    remitCountryDropdown.style.display = 'none';
+  });
+  document.addEventListener('click', (e) => {
+    if (!remitCountrySearch.contains(e.target) && !remitCountryDropdown.contains(e.target)) {
+      remitCountryDropdown.style.display = 'none';
+    }
+  });
+
+  const REMIT_FEE = 0.01;
+  function updateRemitConversion() {
+    const usd = parseFloat(remitUsdInput.value) || 0;
+    remitUsdcOutput.value = Math.max(0, usd - REMIT_FEE).toFixed(2);
+    updateRemitBalanceNote();
+  }
+  function updateRemitBalanceNote() {
+    if (!connectedAddress) { remitBalanceNote.textContent = 'Connect your wallet to see your available balance.'; return; }
+    const usd = parseFloat(remitUsdInput.value) || 0;
+    const bal = getCurrentBalance();
+    remitBalanceNote.textContent = 'Your wallet: ' + bal.toFixed(2) + ' USDC available' +
+      (usd > bal ? ' — not enough for this amount, add USDC first.' : '.');
+  }
+  remitUsdInput.addEventListener('input', updateRemitConversion);
+  updateRemitConversion();
+
+  document.getElementById('remitSendBtn').addEventListener('click', async () => {
+    if (!connectedAddress) { showToast('Connect your wallet first', true); return; }
+    const usd = parseFloat(remitUsdInput.value) || 0;
+    const recipient = document.getElementById('remitRecipientInput').value.trim();
+    if (usd <= REMIT_FEE) { showToast('Enter an amount above $' + REMIT_FEE.toFixed(2), true); return; }
+    if (!/^0x[a-fA-F0-9]{6,}$/.test(recipient)) { showToast('Enter a valid recipient wallet address', true); return; }
+    if (usd > getCurrentBalance()) { showToast('Not enough USDC in your wallet — add USDC first', true); return; }
+    const btn = document.getElementById('remitSendBtn');
+    const original = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Confirm in wallet…';
+    try {
+      const usdcAmount = usd - REMIT_FEE;
+      const valueWei = '0x' + BigInt(Math.round(usd * 1e18)).toString(16);
+      await activeProvider.request({
+        method: 'eth_sendTransaction',
+        params: [{ from: connectedAddress, to: recipient, value: valueWei }]
+      });
+      setDisplayedBalance(getCurrentBalance() - usd);
+      const shortAddr = recipient.slice(0, 6) + '…' + recipient.slice(-4);
+      addHistoryEntry(0, usd, 'Remittance to ' + shortAddr);
+      showToast('✅ Sent $' + usd.toFixed(2) + ' → ' + shortAddr + ' (' + usdcAmount.toFixed(2) + ' USDC after fee) · your balance now ' + getCurrentBalance().toFixed(2) + ' USDC');
+      addArcPoints(8, 'Remittance');
+      document.getElementById('remitRecipientInput').value = '';
+      updateRemitBalanceNote();
+      setTimeout(() => refreshBalance(connectedAddress), 2000);
+    } catch (err) {
+      console.error(err);
+      showToast('Transaction cancelled or failed', true);
+    } finally {
+      btn.disabled = false; btn.textContent = original;
+    }
+  });
+
+  /* ---------------- Mobile Top-Up ---------------- */
+  let topupSelectedAmt = null;
+  const topupAmountBtns = document.querySelectorAll('#topupAmounts .method-btn');
+  const topupBalanceNote = document.getElementById('topupBalanceNote');
+
+  function updateTopupAvailability() {
+    if (!connectedAddress) {
+      topupBalanceNote.textContent = 'Connect your wallet to see your available balance.';
+      topupAmountBtns.forEach(b => { b.disabled = false; b.title = ''; });
+      return;
+    }
+    const bal = getCurrentBalance();
+    topupBalanceNote.textContent = 'Available: ' + bal.toFixed(2) + ' USDC (Rs ' + Math.round(bal * liveRate).toLocaleString('en-US') + ') — max you can top up right now.';
+    topupAmountBtns.forEach(btn => {
+      const amt = parseFloat(btn.dataset.amt);
+      const usdcCost = amt / liveRate;
+      const affordable = usdcCost <= bal;
+      btn.innerHTML = 'Rs ' + amt + '<br><span style="font-size:10px; opacity:0.75;">≈ ' + usdcCost.toFixed(2) + ' USDC</span>';
+      btn.disabled = !affordable;
+      btn.style.opacity = affordable ? '1' : '0.4';
+      btn.title = affordable ? '' : 'Not enough testnet USDC for this amount';
+      if (!affordable && btn.classList.contains('active')) { btn.classList.remove('active'); topupSelectedAmt = null; }
+    });
+  }
+
+  topupAmountBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.disabled) { showToast('Not enough USDC balance for this amount', true); return; }
+      topupAmountBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      topupSelectedAmt = parseFloat(btn.dataset.amt);
+    });
+  });
+  updateTopupAvailability();
+  document.getElementById('topupBtn').addEventListener('click', async () => {
+    if (!connectedAddress) { showToast('Connect your wallet first', true); return; }
+    const number = document.getElementById('topupNumberInput').value.trim();
+    if (!number) { showToast('Enter a mobile number', true); return; }
+    if (!topupSelectedAmt) { showToast('Choose a top-up amount', true); return; }
+    const operator = document.getElementById('topupOperator').value;
+    const usdcCost = topupSelectedAmt / liveRate;
+    if (usdcCost > getCurrentBalance()) { showToast('Not enough USDC — add USDC to your wallet first', true); return; }
+    const btn = document.getElementById('topupBtn');
+    const original = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Confirm in wallet…';
+    try {
+      const valueWei = '0x' + BigInt(Math.round(usdcCost * 1e18)).toString(16);
+      await activeProvider.request({
+        method: 'eth_sendTransaction',
+        params: [{ from: connectedAddress, to: TREASURY_ADDRESS, value: valueWei }]
+      });
+      setDisplayedBalance(getCurrentBalance() - usdcCost);
+      addHistoryEntry(topupSelectedAmt, usdcCost, 'Top-Up ' + operator + ' ' + number);
+      showToast('✅ Topped up Rs ' + topupSelectedAmt + ' to ' + number + ' (' + operator + ') · balance now ' + getCurrentBalance().toFixed(2) + ' USDC');
+      addArcPoints(3, 'Top-Up');
+      document.getElementById('topupNumberInput').value = '';
+      setTimeout(() => refreshBalance(connectedAddress), 2000);
+    } catch (err) {
+      console.error(err);
+      showToast('Transaction cancelled or failed', true);
+    } finally {
+      btn.disabled = false; btn.textContent = original;
+    }
+  });
+
+  /* ---------------- Saving Goals ---------------- */
+  const GOALS_KEY = 'saveInDollars_goals';
+  function getGoals() { try { return JSON.parse(localStorage.getItem(GOALS_KEY)) || []; } catch (e) { return []; } }
+  function saveGoals(goals) { localStorage.setItem(GOALS_KEY, JSON.stringify(goals)); }
+  function allocateToGoal(usdcAmount) {
+    const goals = getGoals();
+    const target = goals.find(g => g.saved < g.target);
+    if (!target) return null;
+    target.saved = Math.min(target.target, target.saved + usdcAmount);
+    saveGoals(goals);
+    renderGoals();
+    const remaining = Math.max(0, target.target - target.saved);
+    return remaining === 0
+      ? ('🎉 "' + target.name + '" goal reached!')
+      : ('+' + usdcAmount.toFixed(2) + ' → "' + target.name + '" (' + remaining.toFixed(2) + ' USDC left)');
+  }
+  function renderGoals() {
+    const goals = getGoals();
+    const list = document.getElementById('goalsList');
+    const goalsBalanceNote = document.getElementById('goalsBalanceNote');
+    const bal = connectedAddress ? getCurrentBalance() : 0;
+    goalsBalanceNote.textContent = connectedAddress
+      ? 'Your wallet right now: ' + bal.toFixed(2) + ' USDC (Rs ' + Math.round(bal * liveRate).toLocaleString('en-US') + ')'
+      : 'Connect your wallet to see how close you are.';
+    if (goals.length === 0) {
+      list.innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:12px 0;">No goals yet — add one below.</div>';
+      return;
+    }
+    const cfg = (function () { try { return JSON.parse(localStorage.getItem(AUTOSAVE_KEY)); } catch (e) { return null; } })();
+    const monthlyUsdc = (cfg && cfg.enabled) ? cfg.amount / liveRate : 0;
+    list.innerHTML = goals.map((g, i) => {
+      const pct = Math.min(100, (g.saved / g.target) * 100).toFixed(0);
+      const remaining = Math.max(0, g.target - g.saved);
+      let timelineNote;
+      if (remaining === 0) {
+        timelineNote = '🎉 Goal reached!';
+      } else if (monthlyUsdc > 0) {
+        const monthsNeeded = Math.ceil(remaining / monthlyUsdc);
+        timelineNote = 'At your current auto-save rate, about ' + monthsNeeded + ' month' + (monthsNeeded === 1 ? '' : 's') + ' to reach this.';
+      } else {
+        timelineNote = remaining.toFixed(2) + ' USDC left — set up auto-save to estimate a timeline.';
+      }
+      let deadlineNote = '';
+      if (g.deadline) {
+        const deadlineDate = new Date(g.deadline + 'T00:00:00');
+        const daysLeft = Math.max(0, Math.ceil((deadlineDate - new Date()) / (1000 * 60 * 60 * 24)));
+        deadlineNote = ' · Target: ' + deadlineDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' (' + daysLeft + ' days left)';
+      }
+      return `
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+            <span style="font-weight:500;">${g.name}</span>
+            <span style="font-family:'IBM Plex Mono',monospace; color:var(--muted);">${g.saved.toFixed(2)} / ${g.target.toFixed(2)} USDC</span>
+          </div>
+          <div style="background:var(--bg); border:1px solid var(--line); border-radius:20px; height:10px; overflow:hidden;">
+            <div style="width:${pct}%; height:100%; background:var(--teal);"></div>
+          </div>
+          <div style="font-size:11px; color:var(--muted); margin-top:5px;" class="goal-remaining-note">${timelineNote}${deadlineNote}</div>
+          <div style="display:flex; gap:6px; margin-top:8px;">
+            <input type="number" class="goal-amt-input" data-idx="${i}" placeholder="Amount USDC" style="flex:1; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'IBM Plex Mono',monospace; font-size:12px; background:var(--bg); color:var(--ink);" />
+            <button class="goal-deposit-btn" data-idx="${i}" style="flex:0 0 auto; padding:8px 12px; font-size:12px; border-radius:8px; border:none; cursor:pointer; background:var(--teal); color:#fff; font-weight:600;">${currentLang === 'ur' ? '➕ جمع کریں' : '➕ Deposit'}</button>
+            <button class="goal-withdraw-btn" data-idx="${i}" style="flex:0 0 auto; padding:8px 12px; font-size:12px; border-radius:8px; border:1px solid var(--red); cursor:pointer; background:transparent; color:var(--red); font-weight:600;">${currentLang === 'ur' ? '↩ نکالیں' : '↩ Withdraw'}</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+  // Depositing/withdrawing on a goal is a REAL testnet transaction — it actually moves USDC
+  // in your wallet, just like Swap or Group Savings. The goal's "saved" amount only changes
+  // once the transaction confirms.
+  document.getElementById('goalsList').addEventListener('click', async (e) => {
+    const depositBtn = e.target.closest('.goal-deposit-btn');
+    const withdrawBtn = e.target.closest('.goal-withdraw-btn');
+    const btn = depositBtn || withdrawBtn;
+    if (!btn) return;
+    if (!connectedAddress) { showToast('Connect your wallet first', true); return; }
+    const idx = Number(btn.dataset.idx);
+    const row = btn.closest('div').querySelector('.goal-amt-input');
+    const amt = parseFloat(row.value) || 0;
+    if (amt <= 0) { showToast('Enter an amount first', true); return; }
+    const goals = getGoals();
+    const g = goals[idx];
+    if (!g) return;
+
+    if (depositBtn && amt > getCurrentBalance()) {
+      showToast('Not enough USDC in your wallet — use the Faucet first', true);
+      return;
+    }
+    if (withdrawBtn && amt > g.saved) {
+      showToast('You can\'t withdraw more than what\'s saved in this goal', true);
+      return;
+    }
+
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = translations[currentLang].txPending + '… ⏳';
+    try {
+      const valueWei = '0x' + BigInt(Math.round(amt * 1e18)).toString(16);
+      showToast('Confirm the ' + (depositBtn ? 'deposit' : 'withdrawal') + ' in your wallet…');
+      await activeProvider.request({
+        method: 'eth_sendTransaction',
+        params: [{ from: connectedAddress, to: connectedAddress, value: valueWei }]
+      });
+      if (depositBtn) {
+        setUsdcBalance(getUsdcBalance() - amt);
+        g.saved = Math.min(g.target, g.saved + amt);
+        addHistoryEntry(0, amt, 'Goal Deposit — ' + g.name);
+      } else {
+        setUsdcBalance(getUsdcBalance() + amt);
+        g.saved -= amt;
+        addHistoryEntry(0, amt, 'Goal Withdraw — ' + g.name);
+      }
+      saveGoals(goals);
+      row.value = '';
+      await refreshBalance(connectedAddress);
+      renderGoals();
+      const remaining = Math.max(0, g.target - g.saved);
+      showToast(depositBtn
+        ? (remaining === 0 ? ('🎉 "' + g.name + '" goal reached!') : ('✅ +' + amt.toFixed(2) + ' → "' + g.name + '" — ' + remaining.toFixed(2) + ' USDC left'))
+        : ('✅ -' + amt.toFixed(2) + ' from "' + g.name + '" — back in your wallet'));
+      if (depositBtn) addArcPoints(4, 'Saving Goal');
+    } catch (err) {
+      console.error(err);
+      showToast('Transaction cancelled or failed', true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+  });
+  document.getElementById('addGoalBtn').addEventListener('click', () => {
+    const name = document.getElementById('goalNameInput').value.trim();
+    const target = parseFloat(document.getElementById('goalTargetInput').value) || 0;
+    const deadline = document.getElementById('goalDeadlineInput').value || null;
+    if (!name || target <= 0) { showToast('Enter a goal name and target', true); return; }
+    const goals = getGoals();
+    goals.push({ name, target, saved: 0, deadline });
+    saveGoals(goals);
+    renderGoals();
+    document.getElementById('goalNameInput').value = '';
+    document.getElementById('goalTargetInput').value = '';
+    document.getElementById('goalDeadlineInput').value = '';
+    showToast('🎯 Goal added: ' + name);
+  });
+  renderGoals();
+
+  /* ---------------- Bill Payments ---------------- */
+  const BILL_PROVIDERS = {
+    electricity: ['K-Electric (Karachi)', 'LESCO (Lahore)', 'GEPCO (Gujranwala)', 'FESCO (Faisalabad)', 'MEPCO (Multan)', 'IESCO (Islamabad)', 'PESCO (Peshawar)', 'HESCO (Hyderabad)', 'SEPCO (Sukkur)', 'QESCO (Quetta)', 'TESCO (Tribal Areas)'],
+    gas: ['SSGC (Sindh & Balochistan)', 'SNGPL (Punjab & KPK)'],
+    water: ['KWSB (Karachi Water & Sewerage Board)', 'WASA Lahore', 'WASA Faisalabad', 'WASA Rawalpindi', 'WASA Multan', 'PHED Punjab', 'PHED Sindh']
+  };
+  const BILL_USDC_RANGE = [1, 100];
+
+  let billCategory = 'electricity';
+  let currentBill = null;
+
+  const billCategoryTabs = document.querySelectorAll('#billCategoryTabs .dw-tab');
+  const billProviderSelect = document.getElementById('billProviderSelect');
+  const billConsumerInput = document.getElementById('billConsumerInput');
+  const billFetchBtn = document.getElementById('billFetchBtn');
+  const billResult = document.getElementById('billResult');
+  const billResultProvider = document.getElementById('billResultProvider');
+  const billResultAmount = document.getElementById('billResultAmount');
+  const billResultUsdc = document.getElementById('billResultUsdc');
+  const billResultDue = document.getElementById('billResultDue');
+  const billBalanceNote = document.getElementById('billBalanceNote');
+  const billPayBtn = document.getElementById('billPayBtn');
+  const billsPaidList = document.getElementById('billsPaidList');
+
+  function populateProviders() {
+    billProviderSelect.innerHTML = BILL_PROVIDERS[billCategory].map(p => `<option value="${p}">${p}</option>`).join('');
+  }
+  populateProviders();
+
+  billCategoryTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      billCategoryTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      billCategory = tab.dataset.category;
+      populateProviders();
+      billResult.style.display = 'none';
+      currentBill = null;
+    });
+  });
+
+  function updateBillBalanceNote(usdcAmount) {
+    if (!connectedAddress) { billBalanceNote.textContent = 'Connect your wallet to pay this bill.'; billPayBtn.disabled = false; return; }
+    const bal = getCurrentBalance();
+    if (usdcAmount > bal) {
+      billBalanceNote.innerHTML = '⚠️ Your wallet has ' + bal.toFixed(2) + ' USDC — not enough to pay this bill. <b>Add USDC</b> from the Convert tab first.';
+    } else {
+      billBalanceNote.textContent = 'Your wallet: ' + bal.toFixed(2) + ' USDC available.';
+    }
+  }
+
+  // Simple deterministic hash so the same consumer number always produces the same bill
+  // amount (until paid) instead of a new random number every time you hit Fetch.
+  function hashToRange(str, min, max) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) >>> 0; }
+    const frac = (h % 10000) / 10000;
+    return +(min + frac * (max - min)).toFixed(2);
+  }
+
+  function isAlreadyPaidThisMonth(provider, consumer) {
+    const now = new Date();
+    return getBillsPaid().some(b =>
+      b.provider === provider && b.consumer === consumer &&
+      new Date(b.date).getMonth() === now.getMonth() &&
+      new Date(b.date).getFullYear() === now.getFullYear()
+    );
+  }
+
+  billFetchBtn.addEventListener('click', () => {
+    const consumer = billConsumerInput.value.trim();
+    if (!consumer) { showToast('Enter your consumer number first', true); return; }
+    const provider = billProviderSelect.value;
+
+    if (isAlreadyPaidThisMonth(provider, consumer)) {
+      currentBill = null;
+      billResultProvider.textContent = provider + ' · ' + consumer;
+      billResultAmount.textContent = '✅ Paid';
+      billResultUsdc.textContent = 'Already settled this month';
+      billResultDue.textContent = 'Next bill will appear next month';
+      billPayBtn.disabled = true;
+      billResult.style.display = 'block';
+      showToast('This bill is already marked Paid for this month');
+      return;
+    }
+
+    const [min, max] = BILL_USDC_RANGE;
+    const usdcAmount = hashToRange(provider + '|' + consumer, min, max);
+    const pkrAmount = Math.round(usdcAmount * liveRate);
+    const dueDate = new Date();
+    dueDate.setDate(20);
+    currentBill = { provider, consumer, amount: pkrAmount, usdc: usdcAmount, category: billCategory };
+    billResultProvider.textContent = provider + ' · ' + consumer;
+    billResultAmount.textContent = 'Rs ' + pkrAmount.toLocaleString('en-US');
+    billResultUsdc.textContent = '≈ ' + usdcAmount.toFixed(2) + ' USDC';
+    billResultDue.textContent = 'Due ' + dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    billPayBtn.disabled = false;
+    updateBillBalanceNote(usdcAmount);
+    billResult.style.display = 'block';
+  });
+
+  billPayBtn.addEventListener('click', async () => {
+    if (!currentBill) return;
+    if (!connectedAddress) { showToast('Connect your wallet first', true); return; }
+    const usdcAmount = currentBill.usdc;
+    if (usdcAmount > getCurrentBalance()) { showToast('Not enough USDC — add USDC to your wallet first', true); return; }
+    const originalText = billPayBtn.textContent;
+    billPayBtn.disabled = true;
+    billPayBtn.textContent = 'Confirm in wallet…';
+    try {
+      const valueWei = '0x' + BigInt(Math.round(usdcAmount * 1e18)).toString(16);
+      await activeProvider.request({
+        method: 'eth_sendTransaction',
+        params: [{ from: connectedAddress, to: TREASURY_ADDRESS, value: valueWei }]
+      });
+      setDisplayedBalance(getCurrentBalance() - usdcAmount);
+      addHistoryEntry(currentBill.amount, usdcAmount, 'Bill Payment – ' + currentBill.provider);
+      saveBillPaid(currentBill);
+      showToast('✅ Paid Rs ' + currentBill.amount.toLocaleString('en-US') + ' (' + usdcAmount.toFixed(2) + ' USDC) — ' + currentBill.provider + ' · balance now ' + getCurrentBalance().toFixed(2) + ' USDC');
+      addArcPoints(3, 'Bill Payment');
+      billResult.style.display = 'none';
+      billConsumerInput.value = '';
+      currentBill = null;
+      setTimeout(() => refreshBalance(connectedAddress), 2000);
+    } catch (err) {
+      console.error(err);
+      showToast('Transaction cancelled or failed', true);
+    } finally {
+      billPayBtn.disabled = false; billPayBtn.textContent = originalText;
+    }
+  });
+
+  const BILLS_KEY = 'saveInDollars_bills';
+  function getBillsPaid() { try { return JSON.parse(localStorage.getItem(BILLS_KEY)) || []; } catch (e) { return []; } }
+  function saveBillPaid(bill) {
+    const bills = getBillsPaid();
+    bills.unshift(Object.assign({}, bill, { date: new Date().toISOString() }));
+    localStorage.setItem(BILLS_KEY, JSON.stringify(bills.slice(0, 50)));
+    renderBillsPaid();
+  }
+  function renderBillsPaid() {
+    const bills = getBillsPaid();
+    const now = new Date();
+    const thisMonthBills = bills.filter(b => { const d = new Date(b.date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
+    if (thisMonthBills.length === 0) {
+      billsPaidList.innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:16px 0;">No bills paid yet this month.</div>';
+      return;
+    }
+    billsPaidList.innerHTML = thisMonthBills.map(b => {
+      const d = new Date(b.date);
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return `
+        <div class="history-row">
+          <div class="h-left">
+            <div class="h-amounts">${b.provider}</div>
+            <div class="h-date">Consumer: ${b.consumer} · Paid ${dateStr}</div>
+          </div>
+          <div class="h-usdc" style="color:var(--green-soft);">✓ Rs ${b.amount.toLocaleString('en-US')}</div>
+        </div>
+      `;
+    }).join('');
+  }
+  renderBillsPaid();
+
+  /* ---------------- PIN Lock ---------------- */
+  const PIN_KEY = 'saveInDollars_pin';
+  const pinOverlay = document.getElementById('pinOverlay');
+  const pinDots = document.querySelectorAll('.pin-dot');
+  const pinError = document.getElementById('pinError');
+  let pinBuffer = '';
+  let pinStage = null; // 'set-first' | 'set-confirm' | 'enter'
+  let pinFirstEntry = '';
+
+  function renderPinDots() {
+    pinDots.forEach((d, i) => d.classList.toggle('filled', i < pinBuffer.length));
+  }
+  function startPinFlow() {
+    const saved = localStorage.getItem(PIN_KEY);
+    if (saved) {
+      pinStage = 'enter';
+      document.getElementById('pinTitle').textContent = translations[currentLang].pinEnterTitle;
+      document.getElementById('pinSubtitle').textContent = translations[currentLang].pinEnterSubtitle;
+    } else {
+      pinStage = 'set-first';
+      document.getElementById('pinTitle').textContent = translations[currentLang].pinSetTitle;
+      document.getElementById('pinSubtitle').textContent = translations[currentLang].pinSetSubtitle;
+    }
+    pinBuffer = ''; renderPinDots(); pinError.textContent = '';
+    pinOverlay.classList.add('show');
+  }
+  document.getElementById('pinKeypad').addEventListener('click', (e) => {
+    const btn = e.target.closest('.pin-key');
+    if (!btn) return;
+    const k = btn.dataset.k;
+    if (k === 'clear') { pinBuffer = pinBuffer.slice(0, -1); renderPinDots(); return; }
+    if (k === 'ok') { submitPin(); return; }
+    if (pinBuffer.length < 4) { pinBuffer += k; renderPinDots(); }
+    if (pinBuffer.length === 4) setTimeout(submitPin, 150);
+  });
+  function submitPin() {
+    if (pinBuffer.length !== 4) return;
+    if (pinStage === 'set-first') {
+      pinFirstEntry = pinBuffer;
+      pinStage = 'set-confirm';
+      pinBuffer = ''; renderPinDots();
+      document.getElementById('pinSubtitle').textContent = currentLang === 'ur' ? 'دوبارہ درج کریں' : 'Enter it again to confirm';
+    } else if (pinStage === 'set-confirm') {
+      if (pinBuffer === pinFirstEntry) {
+        localStorage.setItem(PIN_KEY, pinBuffer);
+        pinOverlay.classList.remove('show');
+        showToast('🔒 PIN set successfully');
+      } else {
+        pinError.textContent = translations[currentLang].pinMismatch;
+        pinStage = 'set-first'; pinBuffer = ''; renderPinDots();
+        document.getElementById('pinSubtitle').textContent = translations[currentLang].pinSetSubtitle;
+      }
+    } else if (pinStage === 'enter') {
+      const saved = localStorage.getItem(PIN_KEY);
+      if (pinBuffer === saved) {
+        pinOverlay.classList.remove('show');
+      } else {
+        pinError.textContent = translations[currentLang].pinWrong;
+        pinBuffer = ''; renderPinDots();
+      }
+    }
+  }
+  document.getElementById('pinSkipBtn').addEventListener('click', () => pinOverlay.classList.remove('show'));
+  // PIN setup popup disabled — startPinFlow() intentionally not called on load.
+
+  /* ---------------- Family / Group savings ---------------- */
+  const GROUP_KEY = 'saveInDollars_group';
+  const groupBalanceNote = document.getElementById('groupBalanceNote');
+  function getGroupMembers() { try { return JSON.parse(localStorage.getItem(GROUP_KEY)) || []; } catch (e) { return []; } }
+  let groupActiveRow = null;
+  let groupActiveMode = null; // 'deposit' | 'withdraw'
+
+  function renderGroup() {
+    const members = getGroupMembers();
+    const list = document.getElementById('groupMembersList');
+    const total = members.reduce((s, m) => s + m.amt, 0);
+    document.getElementById('groupTotalAmt').textContent = total.toFixed(2) + ' USDC';
+    groupBalanceNote.textContent = connectedAddress
+      ? 'Your wallet: ' + getCurrentBalance().toFixed(2) + ' USDC — contributions are deducted from this.'
+      : 'Connect your wallet to contribute from your USDC balance.';
+    if (members.length === 0) {
+      list.innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:10px 0;">No contributions yet.</div>';
+      return;
+    }
+    const maxAmt = Math.max(...members.map(m => m.amt), 0.01);
+    list.innerHTML = members.map((m, i) => `
+      <div style="margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; margin-bottom:4px;">
+          <span>${m.name}</span>
+          <span style="display:flex; align-items:center; gap:6px;">
+            <span class="gm-amt">${m.amt.toFixed(2)} USDC</span>
+            <button class="group-addmore-btn" data-index="${i}" title="Add more to this contribution" style="background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:2px 7px; font-size:11px; cursor:pointer; color:var(--teal);">➕ Add</button>
+            <button class="group-withdraw-btn" data-index="${i}" title="Withdraw part or all of this contribution" style="background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:2px 7px; font-size:11px; cursor:pointer; color:var(--muted);">↩ Withdraw</button>
+          </span>
+        </div>
+        <div style="background:var(--bg); border:1px solid var(--line); border-radius:8px; height:10px; overflow:hidden;">
+          <div style="width:${(m.amt / maxAmt * 100).toFixed(0)}%; height:100%; background:var(--teal);"></div>
+        </div>
+        ${groupActiveRow === i ? `
+        <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
+          <input type="number" id="groupInlineAmt" placeholder="${groupActiveMode === 'withdraw' ? 'Max ' + m.amt.toFixed(2) : 'Amount'} USDC" style="flex:1; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:13px; background:var(--bg); color:var(--ink);" />
+          <button class="group-inline-confirm-btn" data-index="${i}" data-mode="${groupActiveMode}" style="flex:0 0 auto; padding:8px 12px; font-size:12px; border-radius:8px; border:none; cursor:pointer; background:${groupActiveMode === 'withdraw' ? 'var(--red)' : 'var(--teal)'}; color:#fff; font-weight:600;">${groupActiveMode === 'withdraw' ? 'Confirm Withdraw' : 'Confirm Deposit'}</button>
+          <button class="group-inline-cancel-btn" style="flex:0 0 auto; padding:8px 10px; font-size:12px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--muted); cursor:pointer;">Cancel</button>
+        </div>
+        ` : ''}
+      </div>
+    `).join('');
+    document.querySelectorAll('.group-addmore-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.index);
+        groupActiveRow = (groupActiveRow === i && groupActiveMode === 'deposit') ? null : i;
+        groupActiveMode = 'deposit';
+        renderGroup();
+      });
+    });
+    document.querySelectorAll('.group-withdraw-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.index);
+        groupActiveRow = (groupActiveRow === i && groupActiveMode === 'withdraw') ? null : i;
+        groupActiveMode = 'withdraw';
+        renderGroup();
+      });
+    });
+    document.querySelectorAll('.group-inline-cancel-btn').forEach(btn => {
+      btn.addEventListener('click', () => { groupActiveRow = null; renderGroup(); });
+    });
+    document.querySelectorAll('.group-inline-confirm-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.index);
+        const mode = btn.dataset.mode;
+        const input = document.getElementById('groupInlineAmt');
+        const amount = parseFloat(input.value) || 0;
+        if (amount <= 0) { showToast('Enter an amount first', true); return; }
+        if (mode === 'withdraw') {
+          withdrawGroupContribution(i, amount);
+        } else {
+          depositMoreToGroup(i, amount);
+        }
+      });
+    });
+  }
+
+  async function depositMoreToGroup(index, amount) {
+    if (!connectedAddress) { showToast('Connect your wallet first', true); return; }
+    const members = getGroupMembers();
+    const m = members[index];
+    if (!m) return;
+    if (amount > getCurrentBalance()) { showToast('Not enough USDC balance — add USDC to your wallet first', true); return; }
+    try {
+      showToast('Confirm the deposit in your wallet…');
+      const valueWei = '0x' + BigInt(Math.round(amount * 1e18)).toString(16);
+      await activeProvider.request({
+        method: 'eth_sendTransaction',
+        params: [{ from: connectedAddress, to: TREASURY_ADDRESS, value: valueWei }]
+      });
+      m.amt = +(m.amt + amount).toFixed(6);
+      localStorage.setItem(GROUP_KEY, JSON.stringify(members));
+      addHistoryEntry(amount * liveRate, amount, 'Group Savings — ' + m.name);
+      setUsdcBalance(getUsdcBalance() - amount);
+      groupActiveRow = null;
+      renderGroup();
+      showToast('✅ Added ' + amount.toFixed(2) + ' USDC to ' + m.name + '\'s contribution');
+      addArcPoints(4, 'Group Savings');
+    } catch (err) {
+      console.error(err);
+      showToast('Deposit cancelled or failed', true);
+    }
+  }
+
+  async function withdrawGroupContribution(index, amount) {
+    if (!connectedAddress) { showToast('Connect your wallet first', true); return; }
+    const members = getGroupMembers();
+    const m = members[index];
+    if (!m) return;
+    if (isNaN(amount) || amount <= 0) { showToast('Enter a valid amount', true); return; }
+    if (amount > m.amt + 0.000001) { showToast('You can only withdraw up to ' + m.amt.toFixed(2) + ' USDC', true); return; }
+    try {
+      showToast('Confirm the withdrawal in your wallet…');
+      const valueWei = '0x' + BigInt(Math.round(amount * 1e18)).toString(16);
+      await activeProvider.request({
+        method: 'eth_sendTransaction',
+        params: [{ from: connectedAddress, to: connectedAddress, value: valueWei }]
+      });
+      if (amount >= m.amt - 0.000001) {
+        members.splice(index, 1);
+      } else {
+        m.amt = +(m.amt - amount).toFixed(6);
+      }
+      localStorage.setItem(GROUP_KEY, JSON.stringify(members));
+      addHistoryEntry(amount * liveRate, amount, 'Group Savings Withdrawal — ' + m.name);
+      setUsdcBalance(getUsdcBalance() + amount);
+      groupActiveRow = null;
+      renderGroup();
+      showToast('↩ Withdrew ' + amount.toFixed(2) + ' USDC — new balance ' + getUsdcBalance().toFixed(2) + ' USDC');
+    } catch (err) {
+      console.error(err);
+      showToast('Withdrawal cancelled or failed', true);
+    }
+  }
+  document.getElementById('groupAddBtn').addEventListener('click', async () => {
+    if (!connectedAddress) { showToast('Connect your wallet first', true); return; }
+    const name = document.getElementById('groupMemberName').value.trim();
+    const amt = parseFloat(document.getElementById('groupMemberAmt').value) || 0;
+    if (!name || amt <= 0) { showToast('Enter member name and amount', true); return; }
+    if (amt > getCurrentBalance()) { showToast('Not enough USDC balance — add USDC to your wallet first', true); return; }
+    const addBtn = document.getElementById('groupAddBtn');
+    const originalBtnText = addBtn.textContent;
+    addBtn.disabled = true;
+    addBtn.textContent = translations[currentLang].txPending + '… ⏳';
+    try {
+      const valueWei = '0x' + BigInt(Math.round(amt * 1e18)).toString(16);
+      showToast('Confirm the contribution in your wallet…');
+      await activeProvider.request({
+        method: 'eth_sendTransaction',
+        params: [{ from: connectedAddress, to: TREASURY_ADDRESS, value: valueWei }]
+      });
+      addBtn.textContent = translations[currentLang].txConfirming + '… 🔄';
+      addHistoryEntry(amt * liveRate, amt, 'Group Savings — ' + name);
+      const members = getGroupMembers();
+      members.push({ name, amt });
+      localStorage.setItem(GROUP_KEY, JSON.stringify(members));
+      renderGroup();
+      document.getElementById('groupMemberName').value = '';
+      document.getElementById('groupMemberAmt').value = '';
+      // Pull the real on-chain balance instead of guessing locally — this is what actually
+      // fixes the "random"/"unlimited" balance bug, since the number is never faked in between.
+      await refreshBalance(connectedAddress);
+      addBtn.textContent = translations[currentLang].txConfirmed + ' ✓';
+      showToast('👨‍👩‍👧 ' + name + ' contributed ' + amt.toFixed(2) + ' USDC — new balance ' + getCurrentBalance().toFixed(2) + ' USDC');
+      addArcPoints(4, 'Group Savings');
+    } catch (err) {
+      console.error(err);
+      showToast('Transaction cancelled or failed', true);
+    } finally {
+      addBtn.disabled = false;
+      setTimeout(() => { addBtn.textContent = originalBtnText; }, 600);
+    }
+  });
+  renderGroup();
+
+  /* ---------------- Badges / Milestones ---------------- */
+  const BADGES = [
+    { id: 'first', icon: '🌱', label: 'First Save', threshold: 0.01 },
+    { id: 'ten', icon: '💵', label: '$10 Saved', threshold: 10 },
+    { id: 'fifty', icon: '🏆', label: '$50 Saved', threshold: 50 },
+    { id: 'hundred', icon: '💎', label: '$100 Saved', threshold: 100 }
+  ];
+  const CUSTOM_BADGES_KEY = 'saveInDollars_custom_badges';
+  // Custom milestones store their own { amount, saved } — unlike the default badges (which
+  // unlock automatically once your lifetime total crosses a threshold), a custom milestone
+  // is a fundable target: you deposit/withdraw toward it directly, same as a Saving Goal.
+  function getCustomBadges() {
+    try {
+      const list = JSON.parse(localStorage.getItem(CUSTOM_BADGES_KEY)) || [];
+      return list.map(c => ({ amount: c.amount, saved: c.saved || 0 }));
+    } catch (e) { return []; }
+  }
+  function saveCustomBadges(list) { localStorage.setItem(CUSTOM_BADGES_KEY, JSON.stringify(list)); }
+  // Combined amount currently earmarked into Saving Goals + custom Milestones, so neither
+  // screen lets you earmark more than what's actually in your wallet.
+  function totalEarmarked() {
+    const goalsTotal = (typeof getGoals === 'function') ? getGoals().reduce((s, gg) => s + gg.saved, 0) : 0;
+    const milestonesTotal = getCustomBadges().reduce((s, c) => s + c.saved, 0);
+    return goalsTotal + milestonesTotal;
+  }
+  document.getElementById('customMilestoneBtn').addEventListener('click', () => {
+    const amt = parseFloat(document.getElementById('customMilestoneInput').value) || 0;
+    if (amt <= 0) { showToast('Enter a target amount', true); return; }
+    const custom = getCustomBadges();
+    if (custom.some(c => c.amount === amt) || BADGES.some(b => b.threshold === amt)) { showToast('That milestone already exists', true); return; }
+    custom.push({ amount: amt, saved: 0 });
+    saveCustomBadges(custom);
+    document.getElementById('customMilestoneInput').value = '';
+    renderBadges();
+    showToast('🎯 Custom milestone added: $' + amt + ' Saved');
+  });
+  function totalSavedFromHistory() {
+    return getHistory().filter(h => h.usdc > 0 && !(h.label && (h.label.startsWith('Goal ') || h.label.startsWith('Milestone ')))).reduce((s, h) => s + h.usdc, 0);
+  }
+  function renderBadges() {
+    const total = totalSavedFromHistory();
+    const grid = document.getElementById('badgesGrid');
+    grid.innerHTML = BADGES.map(b => `
+      <div class="badge-item ${total >= b.threshold ? 'unlocked' : ''}">
+        <div class="b-icon">${b.icon}</div>
+        <div class="b-label">${b.label}</div>
+      </div>
+    `).join('');
+    renderCustomMilestones();
+  }
+  function renderCustomMilestones() {
+    const box = document.getElementById('customMilestonesList');
+    if (!box) return;
+    const custom = getCustomBadges();
+    if (custom.length === 0) { box.innerHTML = ''; return; }
+    box.innerHTML = custom.map((c, i) => {
+      const pct = Math.min(100, (c.saved / c.amount) * 100).toFixed(0);
+      const remaining = Math.max(0, c.amount - c.saved);
+      return `
+        <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--line);">
+          <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+            <span style="font-weight:500;">🎯 $${c.amount} Saved</span>
+            <span style="font-family:'IBM Plex Mono',monospace; color:var(--muted);">${c.saved.toFixed(2)} / ${c.amount.toFixed(2)} USDC</span>
+          </div>
+          <div style="background:var(--bg); border:1px solid var(--line); border-radius:20px; height:10px; overflow:hidden;">
+            <div style="width:${pct}%; height:100%; background:var(--teal);"></div>
+          </div>
+          <div style="font-size:11px; color:var(--muted); margin-top:5px;">${remaining === 0 ? '🎉 Milestone reached!' : remaining.toFixed(2) + ' USDC left'}</div>
+          <div style="display:flex; gap:6px; margin-top:8px;">
+            <input type="number" class="milestone-amt-input" data-idx="${i}" placeholder="Amount USDC" style="flex:1; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'IBM Plex Mono',monospace; font-size:12px; background:var(--bg); color:var(--ink);" />
+            <button class="milestone-deposit-btn" data-idx="${i}" style="flex:0 0 auto; padding:8px 12px; font-size:12px; border-radius:8px; border:none; cursor:pointer; background:var(--teal); color:#fff; font-weight:600;">${currentLang === 'ur' ? '➕ جمع کریں' : '➕ Deposit'}</button>
+            <button class="milestone-withdraw-btn" data-idx="${i}" style="flex:0 0 auto; padding:8px 12px; font-size:12px; border-radius:8px; border:1px solid var(--red); cursor:pointer; background:transparent; color:var(--red); font-weight:600;">${currentLang === 'ur' ? '↩ نکالیں' : '↩ Withdraw'}</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+  document.getElementById('customMilestonesList')?.addEventListener('click', async (e) => {
+    const depositBtn = e.target.closest('.milestone-deposit-btn');
+    const withdrawBtn = e.target.closest('.milestone-withdraw-btn');
+    const btn = depositBtn || withdrawBtn;
+    if (!btn) return;
+    if (!connectedAddress) { showToast('Connect your wallet first', true); return; }
+    const idx = Number(btn.dataset.idx);
+    const row = btn.closest('div').querySelector('.milestone-amt-input');
+    const amt = parseFloat(row.value) || 0;
+    if (amt <= 0) { showToast('Enter an amount first', true); return; }
+    const custom = getCustomBadges();
+    const c = custom[idx];
+    if (!c) return;
+
+    if (depositBtn) {
+      const availableToEarmark = getCurrentBalance();
+      if ((totalEarmarked() + amt) > availableToEarmark) {
+        showToast('That would earmark more than your real wallet balance — add USDC first', true);
+        return;
+      }
+    } else {
+      if (amt > c.saved) { showToast('You can\'t withdraw more than what\'s saved toward this milestone', true); return; }
+    }
+
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = translations[currentLang].txPending + '… ⏳';
+    try {
+      const valueWei = '0x' + BigInt(Math.round(amt * 1e18)).toString(16);
+      showToast('Confirm the ' + (depositBtn ? 'deposit' : 'withdrawal') + ' in your wallet…');
+      await activeProvider.request({
+        method: 'eth_sendTransaction',
+        params: [{ from: connectedAddress, to: connectedAddress, value: valueWei }]
+      });
+      if (depositBtn) {
+        setUsdcBalance(getUsdcBalance() - amt);
+        c.saved = Math.min(c.amount, c.saved + amt);
+        addHistoryEntry(0, amt, 'Milestone Deposit — $' + c.amount);
+        const remaining = Math.max(0, c.amount - c.saved);
+        showToast(remaining === 0 ? ('🎉 $' + c.amount + ' milestone reached!') : ('+' + amt.toFixed(2) + ' — ' + remaining.toFixed(2) + ' USDC left'));
+        addArcPoints(4, 'Milestone');
+      } else {
+        setUsdcBalance(getUsdcBalance() + amt);
+        c.saved -= amt;
+        addHistoryEntry(0, amt, 'Milestone Withdraw — $' + c.amount);
+        const remaining = Math.max(0, c.amount - c.saved);
+        showToast('-' + amt.toFixed(2) + ' — ' + remaining.toFixed(2) + ' USDC left to reach milestone');
+      }
+      saveCustomBadges(custom);
+      row.value = '';
+      renderBadges();
+    } catch (err) {
+      console.error(err);
+      showToast('Transaction cancelled or failed', true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+  });
+  function checkBadges() {
+    const total = totalSavedFromHistory();
+    const unlockedKey = 'saveInDollars_badges_seen';
+    let seen = JSON.parse(localStorage.getItem(unlockedKey) || '[]');
+    BADGES.forEach(b => {
+      if (total >= b.threshold && !seen.includes(b.id)) {
+        seen.push(b.id);
+        showToast('🎉 Milestone unlocked: ' + b.label + '!');
+      }
+    });
+    localStorage.setItem(unlockedKey, JSON.stringify(seen));
+    renderBadges();
+  }
+  checkBadges();
+
+  /* ---------------- Rate alert ---------------- */
+  const RATE_ALERT_KEY = 'saveInDollars_rate_alert';
+  function renderRateAlert() {
+    const target = parseFloat(localStorage.getItem(RATE_ALERT_KEY));
+    const box = document.getElementById('rateAlertActive');
+    if (target) {
+      box.classList.add('show');
+      document.getElementById('rateAlertActiveText').textContent =
+        (currentLang === 'ur' ? 'الرٹ سیٹ ہے: ' : 'Alert set for Rs ') + target.toFixed(2);
+    } else {
+      box.classList.remove('show');
+    }
+  }
+  document.getElementById('rateAlertSetBtn').addEventListener('click', () => {
+    const val = parseFloat(document.getElementById('rateAlertInput').value);
+    if (!val || val <= 0) { showToast('Enter a target rate', true); return; }
+    localStorage.setItem(RATE_ALERT_KEY, val);
+    localStorage.removeItem('saveInDollars_rate_alert_fired');
+    renderRateAlert();
+    showToast('🔔 Alert set for Rs ' + val.toFixed(2));
+  });
+  document.getElementById('rateAlertClearBtn').addEventListener('click', () => {
+    localStorage.removeItem(RATE_ALERT_KEY);
+    localStorage.removeItem('saveInDollars_rate_alert_fired');
+    renderRateAlert();
+  });
+  renderRateAlert();
+  setInterval(() => {
+    const target = parseFloat(localStorage.getItem(RATE_ALERT_KEY));
+    if (target && liveRate >= target && localStorage.getItem('saveInDollars_rate_alert_fired') !== 'true') {
+      showToast('🔔 Rate alert! 1 USD has reached Rs ' + liveRate.toFixed(2));
+      localStorage.setItem('saveInDollars_rate_alert_fired', 'true');
+    }
+  }, 4200);
+
+  /* ---------------- QR pay/receive ---------------- */
+  function updateQrForAddress(address) {
+    const img = document.getElementById('qrImage');
+    const label = document.getElementById('qrAddressLine');
+    if (address) {
+      img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(address);
+      label.textContent = address.slice(0, 8) + '…' + address.slice(-6);
+    }
+  }
+
+  /* ---------------- Reminder nudge ---------------- */
+  function checkNudge() {
+    const history = getHistory();
+    const now = new Date();
+    const recentThisMonth = history.some(h => {
+      const d = new Date(h.date);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+    if (!recentThisMonth && history.length > 0 && localStorage.getItem('saveInDollars_nudge_dismissed') !== 'true') {
+      document.getElementById('nudgeBanner').classList.add('show');
+    }
+  }
+  document.getElementById('nudgeDismiss').addEventListener('click', () => {
+    document.getElementById('nudgeBanner').classList.remove('show');
+    localStorage.setItem('saveInDollars_nudge_dismissed', 'true');
+  });
+  checkNudge();
+
+  /* ---------------- Export statement CSV ---------------- */
+  document.getElementById('exportCsvBtn').addEventListener('click', () => {
+    const history = getHistory();
+    if (history.length === 0) { showToast('No transactions to export yet', true); return; }
+    let csv = 'Date,Description,PKR Amount,USDC Amount\n';
+    history.forEach(h => {
+      const d = new Date(h.date).toLocaleString('en-US');
+      const desc = (h.label || 'Conversion').replace(/,/g, ' ');
+      csv += `"${d}","${desc}",${h.pkr.toFixed(2)},${h.usdc.toFixed(2)}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'save-in-dollars-statement.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('📄 Statement downloaded');
+  });
+
+  /* ---------------- Explorer / legal links (demo placeholders) ---------------- */
+  document.getElementById('explorerLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    showToast('🔗 Demo build — explorer link goes live at mainnet launch');
+  });
+  document.querySelectorAll('.legal-links a').forEach(a => a.addEventListener('click', (e) => {
+    e.preventDefault();
+    showToast('📄 Coming soon — this will open the full document');
+  }));
+
+  /* ---------------- Top tabs ---------------- */
+  document.getElementById('topTabs').addEventListener('click', (e) => {
+    const btn = e.target.closest('.top-tab');
+    if (!btn) return;
+    const tab = btn.dataset.tabgroup;
+    document.querySelectorAll('.top-tab').forEach(t => t.classList.toggle('active', t === btn));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active-tab', p.dataset.tab === tab));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  /* ---------------- Marketing FAQ (Home tab) ---------------- */
+  document.querySelectorAll('.mkt-faq-q').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var item = btn.closest('.mkt-faq-item');
+      var wasOpen = item.classList.contains('mkt-open');
+      document.querySelectorAll('.mkt-faq-item.mkt-open').forEach(function(i){ i.classList.remove('mkt-open'); });
+      if (!wasOpen) item.classList.add('mkt-open');
+    });
+  });
+
+  /* ---------------- ArcPoints (APts) ---------------- */
+  const AP_KEY = 'saveInDollars_arcpoints';
+  const AP_TABLE = [
+    { label: 'Swap PKR ↔ USDC', pts: 5 },
+    { label: 'Bill Payment', pts: 3 },
+    { label: 'Mobile Top-Up', pts: 3 },
+    { label: 'Send Money Abroad', pts: 8 },
+    { label: 'Group Savings contribution', pts: 4 },
+    { label: 'Saving Goal deposit', pts: 4 },
+    { label: 'Milestone deposit', pts: 4 }
+  ];
+  const AP_TIERS = [
+    { name: 'Starter', emoji: '🥉', min: 0 },
+    { name: 'Saver', emoji: '🥈', min: 100 },
+    { name: 'Pro Saver', emoji: '🥇', min: 300 },
+    { name: 'Arcistan Elite', emoji: '💎', min: 700 }
+  ];
+
+  function getArcPoints() {
+    const v = parseFloat(localStorage.getItem(AP_KEY));
+    return isNaN(v) ? 0 : v;
+  }
+
+  function getArcTier(points) {
+    let current = AP_TIERS[0];
+    for (const t of AP_TIERS) { if (points >= t.min) current = t; }
+    const idx = AP_TIERS.indexOf(current);
+    const next = AP_TIERS[idx + 1] || null;
+    return { current, next };
+  }
+
+  function addArcPoints(amount, reason) {
+    const before = getArcPoints();
+    const { current: tierBefore } = getArcTier(before);
+    const after = before + amount;
+    localStorage.setItem(AP_KEY, after);
+    const { current: tierAfter } = getArcTier(after);
+    renderArcPoints();
+    setTimeout(() => {
+      showToast('+' + amount + ' APts earned! 🎉');
+      if (tierAfter.name !== tierBefore.name) {
+        setTimeout(() => showToast(tierAfter.emoji + ' Tier up! You\'re now ' + tierAfter.name), 1400);
+      }
+    }, 300);
+  }
+
+  function renderArcPoints() {
+    const pts = getArcPoints();
+    const { current, next } = getArcTier(pts);
+
+    // Profile card
+    const totalEl = document.getElementById('apTotalPts');
+    if (totalEl) totalEl.textContent = pts;
+    const tierLabelEl = document.getElementById('apTierLabel');
+    if (tierLabelEl) tierLabelEl.textContent = current.emoji + ' ' + current.name;
+    const barEl = document.getElementById('apProgressBar');
+    const noteEl = document.getElementById('apProgressNote');
+    if (barEl && noteEl) {
+      if (next) {
+        const span = next.min - current.min;
+        const progressed = pts - current.min;
+        barEl.style.width = Math.min(100, (progressed / span) * 100).toFixed(0) + '%';
+        noteEl.textContent = (next.min - pts) + ' APts to reach ' + next.emoji + ' ' + next.name;
+      } else {
+        barEl.style.width = '100%';
+        noteEl.textContent = '💎 Highest tier reached!';
+      }
+    }
+    const tableEl = document.getElementById('apPointsTable');
+    if (tableEl) {
+      tableEl.innerHTML = AP_TABLE.map(row =>
+        '<tr class="ap-row"><td>' + row.label + '</td><td class="ap-pts">+' + row.pts + ' APts</td></tr>'
+      ).join('');
+    }
+
+    // Wallet-bar badge
+    const badge = document.getElementById('wbTierBadge');
+    if (badge) {
+      badge.style.display = 'inline-block';
+      badge.textContent = current.emoji + ' ' + pts + ' APts';
+      badge.title = current.name + ' tier — tap for details';
+    }
+  }
+
+  // Tier popup (tap the wallet-bar badge)
+  document.getElementById('wbTierBadge').addEventListener('click', () => {
+    const pts = getArcPoints();
+    const { current } = getArcTier(pts);
+    document.getElementById('tierPopupEmoji').textContent = current.emoji;
+    document.getElementById('tierPopupName').textContent = current.name;
+    document.getElementById('tierPopupPts').textContent = pts + ' APts';
+    document.getElementById('tierPopupList').innerHTML = AP_TIERS.map(t => {
+      const unlocked = pts >= t.min;
+      return '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border-radius:8px; background:' +
+        (t.name === current.name ? 'rgba(255,255,255,0.08)' : 'transparent') + '; opacity:' + (unlocked ? '1' : '0.5') + ';">' +
+        '<span>' + t.emoji + ' ' + t.name + '</span>' +
+        '<span style="font-size:12px; color:var(--muted);">' + t.min + '+ APts' + (t.name === current.name ? ' · you are here' : '') + '</span>' +
+        '</div>';
+    }).join('');
+    document.getElementById('tierPopupOverlay').style.display = 'flex';
+  });
+  document.getElementById('tierPopupCloseBtn').addEventListener('click', () => {
+    document.getElementById('tierPopupOverlay').style.display = 'none';
+  });
+  document.getElementById('tierPopupDetailsBtn').addEventListener('click', () => {
+    document.getElementById('tierPopupOverlay').style.display = 'none';
+    const profileTab = document.querySelector('.top-tab[data-tabgroup="profile"]');
+    if (profileTab) profileTab.click();
+    setTimeout(() => {
+      document.getElementById('arcPointsCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 150);
+  });
+
+  renderArcPoints();
+
+  /* ---------------- Init ---------------- */
+  syncLedgerUI();
+  applyTranslations();
+</script>
+</body>
+</html>
